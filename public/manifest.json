@@ -1,0 +1,42 @@
+{
+  "name": "City Neuro App",
+  "short_name": "CityNeuro",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a365d",
+  "orientation": "portrait-primary",
+  "description": "Smart city navigation and community platform",
+  "icons": [
+    {
+      "src": "/images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["navigation", "social", "government"],
+  "screenshots": [
+    {
+      "src": "/images/nairobi.png",
+      "sizes": "1080x2340",
+      "type": "image/png",
+      "description": "Main navigation interface"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Post",
+      "short_name": "Post",
+      "description": "Create a community post",
+      "url": "/create-post"
+    }
+  ]
+}
