@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint .",
-    "start:electron": "electron ."
+    "lint": "eslint ."
   },
   "dependencies": {
     "@react-icons/all-files": "^4.1.0",
@@ -41,12 +40,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
-    "@rollup/rollup-win32-x64-msvc": "^4.44.2",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.1.2",
-    "electron": "^35.1.3",
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
