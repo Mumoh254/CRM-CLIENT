@@ -20,7 +20,7 @@ import ProductList from './components/productList';
 import CartSidebar from './components/cartSide';
 import Analytics from './components/analytics';
 import StockAnalytics from './components/stockAnalysis';
-import ProductForm from './components/productForm';
+
 import Login from './components/login';
 import Register from './components/register';
 import { toast } from 'react-toastify';
