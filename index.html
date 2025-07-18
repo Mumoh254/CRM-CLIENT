@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>📦 Efficient Inventory & Stock Control 📊</title>
 
-  <meta name="description" content="Manage your inventory, track stock levels, and optimize product flow with Jikoni Stock Manager." />
+  <meta name="description" content="Manage your inventory, track stock levels, and optimize product flow with Stock Link Manager." />
   <meta name="keywords" content="inventory, stock, tracking, management" />
   <meta name="author" content="Welt Tallis Development Team" />
-  <meta property="og:title" content="Jikoni Stock Manager - Your Inventory, Optimized! 📊" />
+<meta property="og:title" content="StockLink 🔄 | Inventory Made Easy, Insight Made Clear." />
+
   <meta property="og:description" content="Track stock levels, manage products, and streamline your supply chain." />
   <meta property="og:image" content="/images/share.jpg" />
   <meta property="og:url" content="https://jikonistock.app" />
@@ -35,48 +36,72 @@
 <body class="d-flex flex-column min-vh-100">
   <div id="root" role="main"></div>
 
+  <!-- Install Prompt Button -->
+  <div class="position-fixed bottom-0 end-0 m-4">
+    <button id="install-btn" class="btn btn-primary d-none">📲 Install App</button>
+  </div>
+
   <script src="./src/main.jsx" type="module"></script>
 
+  <!-- Service Worker Registration -->
   <script>
-    // ========== SERVICE WORKER REGISTRATION ==========
-  if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js').then(registration => {
-      console.log('[Client] Service Worker registered with scope:', registration.scope);
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js').then(registration => {
+          console.log('[Client] Service Worker registered with scope:', registration.scope);
 
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            if (confirm('New version available. Refresh now?')) {
-              newWorker.postMessage({ type: 'SKIP_WAITING' });
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                if (confirm('New version available. Refresh now?')) {
+                  newWorker.postMessage({ type: 'SKIP_WAITING' });
+                }
+              }
+            });
+          });
+
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('[Client] Controller changed. Reloading...');
+            window.location.reload();
+          });
+
+          navigator.serviceWorker.addEventListener('message', event => {
+            if (event.data?.type === 'NEW_VERSION_AVAILABLE') {
+              console.log(`[Client] New version ${event.data.version} available`);
+              if (confirm(`Update to version ${event.data.version}?`)) {
+                registration.update().then(() => window.location.reload());
+              }
+            } else if (event.data?.type === 'FORCE_RELOAD') {
+              window.location.reload();
             }
-          }
+          });
+
+        }).catch(err => {
+          console.error('[Client] SW registration failed:', err);
         });
       });
+    }
+  </script>
 
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('[Client] Controller changed. Reloading...');
-        window.location.reload();
+  <!-- PWA Install Prompt Logic -->
+  <script>
+    let deferredPrompt;
+    const installBtn = document.getElementById('install-btn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.classList.remove('d-none');
+
+      installBtn.addEventListener('click', async () => {
+        installBtn.classList.add('d-none');
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('[Client] User response to install prompt:', outcome);
+        deferredPrompt = null;
       });
-
-      navigator.serviceWorker.addEventListener('message', event => {
-        if (event.data?.type === 'NEW_VERSION_AVAILABLE') {
-          console.log(`[Client] New version ${event.data.version} available`);
-          if (confirm(`Update to version ${event.data.version}?`)) {
-            registration.update().then(() => window.location.reload());
-          }
-        } else if (event.data?.type === 'FORCE_RELOAD') {
-          window.location.reload();
-        }
-      });
-
-    }).catch(err => {
-      console.error('[Client] SW registration failed:', err);
     });
-  });
-}
-
   </script>
 
   <!-- Optional network status messages -->
