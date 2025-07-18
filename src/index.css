@@ -829,9 +829,9 @@ textarea.form-control {
 
 /* --- Admin Navbar (Top) Styles --- */
 .admin-navbar {
-    border-bottom: 3px solid #E6392B; /* Darker red border for depth */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for elevation */
-    z-index: 1030; /* Ensure it's above other content */
+    border-bottom: 3px solid #E6392B; 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+    z-index: 1030; 
 }
 
 .admin-navbar .navbar-brand {
@@ -853,9 +853,9 @@ textarea.form-control {
 
 .admin-nav-links .admin-nav-item {
     color: #F8F9FA; /* adminNavLinkColor - Lighter off-white */
-    font-weight: 500;
+    font-weight: 600;
     margin: 0 8px; /* Spacing between links */
-    padding: 10px 15px; /* More padding for clickable area */
+    padding: 0px 15px; /* More padding for clickable area */
     border-radius: 8px; /* Slightly rounded corners */
     transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
     display: flex;
@@ -874,7 +874,7 @@ textarea.form-control {
     background-color: rgba(255, 255, 255, 0.25); 
     font-weight: bold;
     border-bottom: 2px solid #FFDDC2; /* Underline for active */
-    padding-bottom: 8px; 
+    padding-bottom: 0px; 
 }
 
 .admin-nav-links .nav-icon {

@@ -7,29 +7,23 @@ import { useCart } from '../context/cartContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import ProductForm from './productForm';
-
-
 import { useNavigate } from 'react-router-dom';
 
-// Color palette - Adjusted for a more vibrant, modern feel
+// Your color palette
 const colors = {
-    primary: '#FF5C8D',   // A vibrant, inviting pink
-    secondary: '#4ECDC4', // A refreshing teal
-    accent: '#FFC72C',    // A bright, energetic yellow
-    darkText: '#2C3E50',  // Deep charcoal for strong contrast
-    lightText: '#7F8C8D', // Muted grey for secondary info
-    background: '#F0F2F5',// Soft light grey background
-    cardBg: '#FFFFFF',    // Pristine white for cards
-    border: '#E0E0E0',    // Light grey border
-    headerBg: '#34495E',  // Dark blue-grey for headers
-    hover: '#F7F9FA',     // Very light grey for hover states
-    warning: '#F39C12',   // Orange for warnings
-    info: '#3498DB',      // Sky blue for info
-    success: '#27AE60',   // Emerald green for success
-    danger: '#E74C3C',    // Classic red for danger
+    primary: '#FF4532',
+    secondary: '#00C853',
+    darkText: '#1A202C',
+    lightBackground: '#F0F2F5',
+    cardBackground: '#FFFFFF',
+    borderColor: '#D1D9E6',
+    errorText: '#EF4444',
+    placeholderText: '#A0AEC0',
+    buttonHover: '#E6392B',
+    disabledButton: '#CBD5E1',
 };
 
-
+// Icon components (unchanged)
 const IconSearch = ({ size = 18, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="currentColor" className={className} viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.088.121l4.353 4.353a1 1 0 0 0 1.414-1.414l-4.353-4.353q-.06-.044-.121-.088zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" /></svg>;
 const IconCategory = ({ size = 18, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="currentColor" className={className} viewBox="0 0 16 16"><path d="M0 2.5A1.5 1.5 0 0 1 1.5 1h13A1.5 1.5 0 0 1 16 2.5v11A1.5 1.5 0 0 1 14.5 15h-13A1.5 1.5 0 0 1 0 13.5zM1.5 2a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-11a.5.5 0 0 0-.5-.5z" /><path d="M2 5.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5zm.5-.5H5V8H2.5zm4.5-.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5zm.5-.5H10V8H7.5zm4.5-.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5zm.5-.5H15V8h-2.5zM2 9.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5zm.5-.5H5V12H2.5zM7 9.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5zm.5-.5H10V12H7.5zm4.5-.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5zm.5-.5H15V12h-2.5z" /></svg>;
 const IconCart = ({ size = 18, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="currentColor" className={className} viewBox="0 0 16 16"><path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M3.13 4l1.25 5h8.52L13.73 4zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2" /></svg>;
@@ -62,13 +56,11 @@ const ProductList = () => {
     const [sortBy, setSortBy] = useState('name');
     const [sortDirection, setSortDirection] = useState('asc');
     const { addToCart } = useCart();
-    const pageSize = 8; // Adjusted for better grid display
+    const pageSize = 8;
     const navigate = useNavigate();
     const [editPrice, setEditPrice] = useState('');
     const [editStock, setEditStock] = useState('');
-
-    // State to manage screen size for conditional rendering
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768); // Bootstrap 'md' breakpoint
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
     useEffect(() => {
         const handleResize = () => {
@@ -82,8 +74,13 @@ const ProductList = () => {
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            const productsRes = await axios.get('http://localhost:5001/api/products');
-            const prodList = Array.isArray(productsRes.data) ? productsRes.data : [];
+            const token = localStorage.getItem('accessToken');
+            const response = await axios.get('http://localhost:5001/api/products', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            const prodList = Array.isArray(response.data) ? response.data : [];
             setProducts(prodList);
 
             const cats = Array.from(new Set(prodList.map(p => p.category))).filter(Boolean);
@@ -144,7 +141,7 @@ const ProductList = () => {
     const handleUpdatePriceStock = async (e) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('accessToken');
             if (!token) {
                 toast.error('Authentication required. Please log in.');
                 navigate('/login');
@@ -152,8 +149,8 @@ const ProductList = () => {
             }
 
             await axios.put(
-                `http://127.0.0.1:5001/api/products/${selectedProduct.id}`,
-                { price: editPrice, stock: editStock },
+                `http://localhost:5001/api/products/${selectedProduct.id}`,
+                { price: parseFloat(editPrice), stock: parseInt(editStock) },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
@@ -175,7 +172,7 @@ const ProductList = () => {
 
     const handleDelete = async () => {
         try {
-            const token = localStorage.getItem('token');
+               const token = localStorage.getItem('accessToken');
             if (!token) {
                 toast.error('Authentication required. Please log in.');
                 navigate('/login');
@@ -183,7 +180,7 @@ const ProductList = () => {
             }
 
             await axios.delete(
-                `http://127.0.0.1:5001/api/products/${selectedProduct.id}`,
+                `http://localhost:5001/api/products/${selectedProduct.id}`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
@@ -205,11 +202,10 @@ const ProductList = () => {
 
     const getProductImageUrl = (imagePath) => {
         if (imagePath) {
-            // Check if imagePath is already a full URL (e.g., from an external source)
             if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
                 return imagePath;
             }
-            return `http://127.0.0.1:5001/uploads/${imagePath}`;
+            return `http://localhost:5001/uploads/${imagePath}`;
         }
         return transparentPlaceholder;
     };
@@ -239,22 +235,21 @@ const ProductList = () => {
     const isAdmin = userRole === 'admin';
 
     return (
-        <div className="min" style={{ backgroundColor: colors.background, minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
+        <div className="min" style={{ backgroundColor: colors.lightBackground, minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
             <style>
                 {`
-                /* General Styling for Modern Look */
+                /* Updated styles using your color palette */
                 .stylish-card {
                     border: none;
-                    border-radius: 15px; /* More rounded corners */
-                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); /* Stronger, softer shadow */
+                    border-radius: 15px;
+                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
                     transition: transform 0.3s ease, box-shadow 0.3s ease;
-                    overflow: hidden; /* Ensure content respects border-radius */
-                    background-color: ${colors.cardBg};
-                   
+                    overflow: hidden;
+                    background-color: ${colors.cardBackground};
                 }
                 .stylish-card:hover {
-                    transform: translateY(-5px); /* Lift on hover */
-                    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12); /* Enhanced shadow on hover */
+                    transform: translateY(-5px);
+                    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
                 }
 
                 .btn-custom-primary {
@@ -266,22 +261,22 @@ const ProductList = () => {
                     font-weight: 600;
                 }
                 .btn-custom-primary:hover {
-                    background-color: ${colors.secondary};
-                    border-color: ${colors.secondary};
+                    background-color: ${colors.buttonHover};
+                    border-color: ${colors.buttonHover};
                     transform: translateY(-2px);
-                    box-shadow: 0 4px 10px rgba(0, 128, 0, 0.2);
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
                 }
 
                 .input-group-stylish .input-group-text,
                 .input-group-stylish .form-control {
-                    border-radius: 10px !important; /* More rounded */
-                    border-color: ${colors.border};
-                    background-color: ${colors.cardBg};
+                    border-radius: 10px !important;
+                    border-color: ${colors.borderColor};
+                    background-color: ${colors.cardBackground};
                     color: ${colors.darkText};
                 }
                 .input-group-stylish .form-control:focus {
                     border-color: ${colors.primary};
-                    box-shadow: 0 0 0 0.25rem ${colors.primary + '40'}; /* Lighter, more modern focus ring */
+                    box-shadow: 0 0 0 0.25rem rgba(255, 69, 50, 0.25);
                 }
 
                 .dropdown-toggle-stylish {
@@ -291,18 +286,18 @@ const ProductList = () => {
                     align-items: center;
                     gap: 8px;
                     color: ${colors.darkText};
-                    background-color: ${colors.cardBg};
-                    border: 1px solid ${colors.border};
+                    background-color: ${colors.cardBackground};
+                    border: 1px solid ${colors.borderColor};
                     width: 100%;
                     justify-content: space-between;
                     font-weight: 500;
                 }
                 .dropdown-toggle-stylish:hover {
-                    background-color: ${colors.hover};
+                    background-color: ${colors.lightBackground};
                 }
                 .dropdown-menu-stylish {
                     border-radius: 10px;
-                    border: 1px solid ${colors.border};
+                    border: 1px solid ${colors.borderColor};
                     box-shadow: 0 6px 20px rgba(0,0,0,0.1);
                     width: 100%;
                     padding: 0.5rem 0;
@@ -313,7 +308,7 @@ const ProductList = () => {
                     padding: 0.75rem 1.25rem;
                 }
                 .dropdown-item-stylish:active, .dropdown-item-stylish:hover {
-                    background-color: ${colors.hover};
+                    background-color: ${colors.lightBackground};
                     color: ${colors.primary};
                 }
 
@@ -339,14 +334,14 @@ const ProductList = () => {
 
                 .modal-body-stylish {
                     padding: 2rem;
-                    background-color: ${colors.background};
+                    background-color: ${colors.lightBackground};
                     color: ${colors.darkText};
                 }
 
                 .modal-footer-stylish {
-                    border-top: 1px solid ${colors.border};
+                    border-top: 1px solid ${colors.borderColor};
                     padding: 1.5rem;
-                    background-color: ${colors.cardBg};
+                    background-color: ${colors.cardBackground};
                     border-bottom-left-radius: 15px;
                     border-bottom-right-radius: 15px;
                 }
@@ -357,16 +352,15 @@ const ProductList = () => {
                     object-fit: contain;
                     border-radius: 10px;
                     margin-bottom: 1.5rem;
-                    border: 1px solid ${colors.border};
-                    background-color: ${colors.hover};
-                    padding: 10px; /* Some padding around the image */
+                    border: 1px solid ${colors.borderColor};
+                    background-color: ${colors.lightBackground};
+                    padding: 10px;
                 }
 
-                /* --- Product Card Specific Styles (for Mobile) --- */
                 .product-card-item {
                     display: flex;
-                    flex-direction: column; /* Stacks vertically on mobile first */
-                    height: 100%; /* Ensure cards in a row have consistent height */
+                    flex-direction: column;
+                    height: 100%;
                 }
 
                 .product-card-item .card-body {
@@ -377,17 +371,16 @@ const ProductList = () => {
                 }
 
                 .product-card-image-container {
-                  
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    background-color: ${colors.background}; /* Light background for image area */
-                    border-bottom: 1px solid ${colors.border};
-                    min-height: 100px; /* Minimum height for image section */
+                    background-color: ${colors.lightBackground};
+                    border-bottom: 1px solid ${colors.borderColor};
+                    min-height: 100px;
                 }
                 .product-card-image-container img {
                     width: 100%;
-                    max-height: 180px; /* Control image size within container */
+                    max-height: 180px;
                     object-fit: cover;
                     border-radius: 8px;
                 }
@@ -409,7 +402,7 @@ const ProductList = () => {
 
                 .product-card-category {
                     font-size: 0.85rem;
-                    color: ${colors.lightText};
+                    color: ${colors.placeholderText};
                     margin-bottom: 0.75rem;
                     font-weight: 500;
                 }
@@ -417,10 +410,10 @@ const ProductList = () => {
                 .product-card-price-stock {
                     display: flex;
                     justify-content: space-between;
-                    align-items: flex-end; /* Align price to bottom */
-                    margin-top: auto; /* Pushes to bottom */
-                    padding: 0 1.2rem 1.2rem 1.2rem; /* Add padding to match content */
-                    border-top: 1px dashed ${colors.border};
+                    align-items: flex-end;
+                    margin-top: auto;
+                    padding: 0 1.2rem 1.2rem 1.2rem;
+                    border-top: 1px dashed ${colors.borderColor};
                     padding-top: 1rem;
                 }
 
@@ -433,19 +426,19 @@ const ProductList = () => {
                 .product-card-stock {
                     font-size: 0.9rem;
                     font-weight: 600;
-                    color: ${colors.lightText};
+                    color: ${colors.placeholderText};
                     padding: 0.25rem 0.6rem;
                     border-radius: 5px;
-                    background-color: ${colors.hover};
+                    background-color: ${colors.lightBackground};
                 }
 
                 .product-card-actions {
                     padding: 1.2rem;
-                    border-top: 1px solid ${colors.border};
+                    border-top: 1px solid ${colors.borderColor};
                     display: flex;
                     gap: 10px;
-                    justify-content: space-around; /* Distribute buttons */
-                    flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+                    justify-content: space-around;
+                    flex-wrap: wrap;
                 }
                 .product-card-actions .btn {
                     flex-grow: 1;
@@ -453,43 +446,42 @@ const ProductList = () => {
                     padding: 0.7rem 0.5rem;
                 }
                 .product-card-actions .btn-sm {
-                    padding: 0.5rem 0.75rem; /* Smaller padding for admin buttons */
+                    padding: 0.5rem 0.75rem;
                     font-size: 0.85rem;
                 }
 
-                /* --- Table Specific Styles (for Desktop) --- */
                 .product-table-responsive {
-                    overflow-x: auto; /* Ensures table is scrollable if content overflows */
+                    overflow-x: auto;
                 }
 
                 .product-table {
                     width: 100%;
-                    border-collapse: separate; /* Allows border-radius on cells */
-                    border-spacing: 0; /* Remove space between cells */
+                    border-collapse: separate;
+                    border-spacing: 0;
                 }
 
                 .product-table th, .product-table td {
                     padding: 1rem 1.2rem;
                     vertical-align: middle;
-                    border-bottom: 1px solid ${colors.border};
+                    border-bottom: 1px solid ${colors.borderColor};
                     color: ${colors.darkText};
                 }
 
                 .product-table th {
-                    background-color: ${colors.headerBg};
+                    background-color: ${colors.primary};
                     color: white;
                     font-weight: 600;
                     text-align: left;
                     cursor: pointer;
-                    white-space: nowrap; /* Prevent headers from wrapping */
+                    white-space: nowrap;
                 }
 
                 .product-table tr:last-child td {
-                    border-bottom: none; /* No border on last row */
+                    border-bottom: none;
                 }
 
                 .product-table tbody tr:hover {
-                    background-color: ${colors.hover};
+                    background-color: ${colors.lightBackground};
                 }
 
                 .product-table .product-image-thumb {
@@ -497,7 +489,7 @@ const ProductList = () => {
                     height: 50px;
                     object-fit: cover;
                     border-radius: 8px;
-                    border: 1px solid ${colors.border};
+                    border: 1px solid ${colors.borderColor};
                 }
 
                 .product-table .btn-table-action {
@@ -506,13 +498,10 @@ const ProductList = () => {
                     border-radius: 6px;
                 }
 
-                /* Responsive adjustments */
                 @media (max-width: 767.98px) {
-                    /* Hide table on mobile */
                     .product-table-container {
                         display: none;
                     }
-                    /* Ensure card display is visible */
                     .product-card-grid {
                         display: flex;
                         flex-wrap: wrap;
@@ -521,16 +510,14 @@ const ProductList = () => {
                         display: none !important;
                     }
                     .add-product-btn-mobile-hidden {
-                        width: 100%; /* Make add product button full width on mobile */
+                        width: 100%;
                     }
                 }
 
                 @media (min-width: 768px) {
-                    /* Hide cards on desktop */
                     .product-card-grid {
                         display: none;
                     }
-                    /* Ensure table display is visible */
                     .product-table-container {
                         display: block;
                     }
@@ -547,45 +534,43 @@ const ProductList = () => {
                         border-bottom-right-radius: 10px;
                     }
 
-                    /* General desktop layout for card (if somehow visible) */
                     .product-card-item {
-                        flex-direction: row; /* Side-by-side for desktop if rendered */
-                        max-height: 250px; /* Limit height for consistent rows */
+                        flex-direction: row;
+                        max-height: 250px;
                     }
                     .product-card-image-container {
-                        flex: 0 0 40%; /* Image takes 40% width */
+                        flex: 0 0 40%;
                         max-width: 40%;
-                        border-right: 1px solid ${colors.border}; /* Separator */
-                        border-bottom: none; /* No bottom border when side-by-side */
-                        min-height: auto; /* Reset min-height */
+                        border-right: 1px solid ${colors.borderColor};
+                        border-bottom: none;
+                        min-height: auto;
                     }
                     .product-card-image-container img {
-                        max-height: 200px; /* Adjust image height for side-by-side */
+                        max-height: 200px;
                     }
                     .product-card-info {
-                        flex: 1; /* Info takes remaining space */
-                        padding-bottom: 0.5rem; /* Adjust padding for side-by-side */
+                        flex: 1;
+                        padding-bottom: 0.5rem;
                         display: flex;
                         flex-direction: column;
-                        justify-content: space-between; /* Push price/actions down */
+                        justify-content: space-between;
                     }
                     .product-card-price-stock {
-                        flex-direction: row; /* Price and stock side-by-side on desktop */
+                        flex-direction: row;
                         justify-content: space-between;
                         align-items: center;
                         margin-top: auto;
-                        padding: 0 1.2rem 1rem 1.2rem; /* Adjusted padding */
-                        border-top: none; /* No border needed here */
+                        padding: 0 1.2rem 1rem 1.2rem;
+                        border-top: none;
                     }
                     .product-card-actions {
-                        border-top: 1px dashed ${colors.border}; /* Add dashed line above actions on desktop */
+                        border-top: 1px dashed ${colors.borderColor};
                         padding-top: 1rem;
                         padding-bottom: 0.5rem;
-                        flex-wrap: nowrap; /* Prevent wrapping on desktop */
+                        flex-wrap: nowrap;
                     }
                 }
                 
-                /* Small mobile devices (e.g., iPhone SE) */
                 @media (max-width: 575.98px) {
                     .product-card-title {
                         font-size: 1.2rem;
@@ -604,11 +589,16 @@ const ProductList = () => {
                 `}
             </style>
 
-            <div className="d-flex py-2 flex-column flex-md-row justify-content-between align-items-md-center  gap-3">
+            <div className="d-flex py-2 flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <Badge
-                    bg="info"
                     className="py-3 d-flex align-items-center justify-content-center flex-grow-1 flex-md-grow-0 hide-on-mobile"
-                    style={{ color: 'white', fontSize: '1.1rem', fontWeight: '700', borderRadius: '8px', backgroundColor: colors.info }}
+                    style={{ 
+                        color: 'white', 
+                        fontSize: '1.1rem', 
+                        fontWeight: '700', 
+                        borderRadius: '8px', 
+                        backgroundColor: colors.primary 
+                    }}
                 >
                     Total Products: <span className="ms-2">{products.length}</span>
                 </Badge>
@@ -626,17 +616,17 @@ const ProductList = () => {
                         variant="danger"
                         onClick={handleLogout}
                         className="btn-custom-primary d-flex align-items-center justify-content-center flex-grow-1 hide-on-mobile"
-                        style={{ backgroundColor: colors.danger, borderColor: colors.danger }}
+                        style={{ backgroundColor: colors.errorText, borderColor: colors.errorText }}
                     >
                         <IconLogout className="me-2" /> Logout
                     </Button>
                 </div>
             </div>
 
-            <Card className="px-4  stylish-card">
+            <Card className="px-4 stylish-card">
                 <h2 className="h4 mb-2" style={{ color: colors.darkText, fontWeight: 'bold' }}>Product Showcase ✨</h2>
 
-                <Row className="mb-5   align-items-end">
+                <Row className="mb-5 align-items-end">
                     <Col xs={12} md={12}>
                         <InputGroup className="input-group-stylish">
                             <InputGroup.Text><IconSearch /></InputGroup.Text>
@@ -654,7 +644,7 @@ const ProductList = () => {
                                 {selectedCategory === 'all' ? 'All Categories' : selectedCategory}
                                 <IconChevronDown className="ms-auto" />
                             </Dropdown.Toggle>
-                            <Dropdown.Menu className="dropdown-menu-stylish  ">
+                            <Dropdown.Menu className="dropdown-menu-stylish">
                                 {categories.map(cat => (
                                     <Dropdown.Item
                                         key={cat}
@@ -696,8 +686,13 @@ const ProductList = () => {
                         </Spinner>
                     </div>
                 ) : filteredProducts.length === 0 ? (
-                    <Alert variant="info" className="text-center py-4" style={{ borderRadius: '10px', backgroundColor: colors.info + '10', borderColor: colors.info, color: colors.darkText }}>
-                        <IconInfoCircle size={24} className="mb-2" style={{ color: colors.info }} />
+                    <Alert variant="info" className="text-center py-4" style={{ 
+                        borderRadius: '10px', 
+                        backgroundColor: `${colors.primary}10`, 
+                        borderColor: colors.primary, 
+                        color: colors.darkText 
+                    }}>
+                        <IconInfoCircle size={24} className="mb-2" style={{ color: colors.primary }} />
                         <p className="mb-0">No products found matching your criteria.</p>
                     </Alert>
                 ) : (
@@ -708,7 +703,7 @@ const ProductList = () => {
                                 <Table hover className="product-table">
                                     <thead>
                                         <tr>
-                                            <th></th> {/* For product image */}
+                                            <th></th>
                                             <th onClick={() => handleSort('name')}>Name {sortBy === 'name' && (sortDirection === 'asc' ? <IconChevronUp /> : <IconChevronDown />)}</th>
                                             <th onClick={() => handleSort('category')}>Category {sortBy === 'category' && (sortDirection === 'asc' ? <IconChevronUp /> : <IconChevronDown />)}</th>
                                             <th>Description</th>
@@ -731,14 +726,13 @@ const ProductList = () => {
                                                 </td>
                                                 <td>{product.name}</td>
                                                 <td>{product.category}</td>
-                                            <td>{product.description?.substring(0, 50) || 'No description'}</td>
-
-                                             <td>
-  {product.price != null && !isNaN(product.price) ? `Ksh ${Number(product.price).toFixed(2)}` : 'N/A'}
-</td>
-
+                                                <td>{product.description?.substring(0, 50) || 'No description'}</td>
                                                 <td>
-                                                    <Badge  bg={product.stock > 0 ? "success" : "danger"}>
+                                                    {product.price != null && !isNaN(product.price) ? 
+                                                        `Ksh ${Number(product.price).toFixed(2)}` : 'N/A'}
+                                                </td>
+                                                <td>
+                                                    <Badge bg={product.stock > 0 ? "success" : "danger"}>
                                                         {product.stock > 0 ? `${product.stock} In Stock` : 'Out of Stock'}
                                                     </Badge>
                                                 </td>
@@ -754,13 +748,7 @@ const ProductList = () => {
                                                     </Button>
                                                     {isAdmin && (
                                                         <>
-                                                            <Button
-                                                                variant="outline-secondary"
-                                                                className="btn-table-action"
-                                                                onClick={() => handleEditClick(product)}
-                                                            >
-                                                                <IconEdit size={14} /> Edit
-                                                            </Button>
+                                                        
                                                             <Button
                                                                 variant="outline-danger"
                                                                 className="btn-table-action"
@@ -786,7 +774,7 @@ const ProductList = () => {
                         </div>
 
                         {/* Mobile View: Cards */}
-                        <div className="product-card-grid d-block d-md-none"> {/* d-md-none hides on medium and up */}
+                        <div className="product-card-grid d-block d-md-none">
                             <Row xs={1} sm={2} className="g-2">
                                 {paginatedProducts.map((product) => (
                                     <Col key={product.id}>
@@ -794,7 +782,7 @@ const ProductList = () => {
                                             <div className="product-card-image-container">
                                                 <Card.Img
                                                     variant="top"
-                                                  src={product.imageUrl || '/default-image.jpg'}
+                                                    src={getProductImageUrl(product.image)}
                                                     alt={product.name}
                                                     onError={handleImageError}
                                                     data-tried-default="false"
@@ -804,15 +792,14 @@ const ProductList = () => {
                                                 <div>
                                                     <Card.Title className="product-card-title">{product.name}</Card.Title>
                                                     <Card.Subtitle className="product-card-category">{product.category}</Card.Subtitle>
-                                                  <Card.Text style={{ color: colors.darkText }}>
-  {product.description ? product.description.substring(0, 80) + '...' : 'No description'}
-</Card.Text>
-
+                                                    <Card.Text style={{ color: colors.darkText }}>
+                                                        {product.description ? product.description.substring(0, 80) + '...' : 'No description'}
+                                                    </Card.Text>
                                                 </div>
                                                 <div className="product-card-price-stock">
-                                                  <span className="product-card-price">
-  {typeof product.price === 'number'
-    ? `Ksh ${product.price.toFixed(2)}`
+                                                   <span className="product-card-price">
+  {product.price != null && !isNaN(product.price)
+    ? `Ksh ${parseFloat(product.price).toFixed(2)}`
     : 'N/A'}
 </span>
 
@@ -892,12 +879,16 @@ const ProductList = () => {
 
             {/* Delete Confirmation Modal */}
             <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered dialogClassName="modal-content-stylish">
-                <Modal.Header closeButton className="modal-header-stylish" style={{ backgroundColor: colors.danger }}>
+                <Modal.Header closeButton className="modal-header-stylish" style={{ backgroundColor: colors.errorText }}>
                     <Modal.Title className="modal-title-stylish">Confirm Delete</Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="modal-body-stylish">
-                    <Alert variant="danger" className="d-flex align-items-center" style={{ backgroundColor: colors.danger + '10', borderColor: colors.danger, color: colors.darkText }}>
-                        <IconInfoCircle className="me-3" size={24} style={{ color: colors.danger }} />
+                    <Alert variant="danger" className="d-flex align-items-center" style={{ 
+                        backgroundColor: `${colors.errorText}10`, 
+                        borderColor: colors.errorText, 
+                        color: colors.darkText 
+                    }}>
+                        <IconInfoCircle className="me-3" size={24} style={{ color: colors.errorText }} />
                         Are you sure you want to delete product: <strong>{selectedProduct?.name}</strong>? This action cannot be undone.
                     </Alert>
                 </Modal.Body>
@@ -905,7 +896,10 @@ const ProductList = () => {
                     <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
                         Cancel
                     </Button>
-                    <Button variant="danger" onClick={handleDelete} className="btn-custom-primary" style={{ backgroundColor: colors.danger, borderColor: colors.danger }}>
+                    <Button variant="danger" onClick={handleDelete} className="btn-custom-primary" style={{ 
+                        backgroundColor: colors.errorText, 
+                        borderColor: colors.errorText 
+                    }}>
                         <IconTrash className="me-2" /> Delete
                     </Button>
                 </Modal.Footer>
@@ -931,22 +925,24 @@ const ProductList = () => {
                             <h4 className="mb-3" style={{ color: colors.darkText, fontWeight: '700' }}>{selectedProduct.name}</h4>
                             <p><strong>Category:</strong> {selectedProduct.category}</p>
                             <p><strong>Description:</strong> {selectedProduct.description}</p>
-                    <p>
-  <strong>Price:</strong>
-  <span style={{ color: colors.primary, fontWeight: 'bold' }}>
-    {typeof selectedProduct.price === 'number'
-      ? `Ksh ${selectedProduct.price.toFixed(2)}`
-      : 'N/A'}
-  </span>
-</p>
-
+                            <p>
+                                <strong>Price:</strong>
+                                <span style={{ color: colors.primary, fontWeight: 'bold' }}>
+                                    {typeof selectedProduct.price === 'number'
+                                        ? `Ksh ${selectedProduct.price.toFixed(2)}`
+                                        : 'N/A'}
+                                </span>
+                            </p>
                             <p><strong>Stock:</strong>
                                 <Badge pill bg={selectedProduct.stock > 0 ? "success" : "danger"} className="ms-2">
                                     {selectedProduct.stock > 0 ? `${selectedProduct.stock} In Stock` : 'Out of Stock'}
                                 </Badge>
                             </p>
                             {isAdmin && (
-                                <Form onSubmit={handleUpdatePriceStock} className="mt-4 p-3 border rounded" style={{ backgroundColor: colors.cardBg, borderColor: colors.border }}>
+                                <Form onSubmit={handleUpdatePriceStock} className="mt-4 p-3 border rounded" style={{ 
+                                    backgroundColor: colors.cardBackground, 
+                                    borderColor: colors.borderColor 
+                                }}>
                                     <h5 className="mb-3" style={{ color: colors.darkText }}>Quick Edit Price/Stock:</h5>
                                     <Form.Group className="mb-3" controlId="editPrice">
                                         <Form.Label>Price</Form.Label>

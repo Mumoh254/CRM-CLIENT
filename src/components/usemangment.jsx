@@ -99,11 +99,12 @@ const UserManagement = () => {
                 throw new Error('Authentication token not found.');
             }
 
-            const response = await fetch(`http://localhost:5001/api/auth/users/${selectedUser.id}`, {
+            const response = await fetch(`http://localhost:5001/api/auth/delete/${selectedUser.id}`, {
                 method: "DELETE",
                 headers: {
                     "Authorization": `Bearer ${token}`,
                 },
+                credentials:  'include'
             });
 
             if (!response.ok) {
@@ -137,15 +138,16 @@ const UserManagement = () => {
             if (!token) {
                 throw new Error('Authentication token not found.');
             }
+const response = await fetch(`http://localhost:5001/api/auth/reset-password/${selectedUser.id}`, {
+  method: "PUT",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`, 
+  },
+  credentials: 'include',
+  body: JSON.stringify({ newPassword }),
+});
 
-            const response = await fetch(`http://localhost:5001/api/auth/update-password/${selectedUser.id}`, { // Changed endpoint
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify({ newPassword }), // Send userId in URL param, only newPassword in body
-            });
 
             if (!response.ok) {
                 const errorData = await response.json();

@@ -3,7 +3,7 @@ import {
   Card, Spinner, Row, Col, Form, Alert, Carousel, Table, Modal, Button, Badge, Pagination, InputGroup
 } from 'react-bootstrap';
 import axios from 'axios';
-import { Line, Bar, Doughnut, Pie } from 'react-chartjs-2'; // Import Pie
+import { Line, Bar, Doughnut, Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, LineElement, PointElement, ArcElement, Filler } from 'chart.js';
 import {
   ShoppingCart, Clock, LineChart, Users, Tag,
@@ -25,22 +25,33 @@ ChartJS.register(
 
 // Color palette from your request
 const colors = {
-  primary: '#FF4532',
-  secondary: '#00C853',
+  primary: '#FF4532', // Jikoni Red
+  secondary: '#00C853', // Jikoni Green
   darkText: '#1A202C',
   lightBackground: '#F0F2F5',
   cardBackground: '#FFFFFF',
   borderColor: '#D1D9E6',
   errorText: '#EF4444',
   placeholderText: '#A0AEC0',
-  buttonHover: '#E6392B',
+  buttonHover: '#E6392B', // Slightly darker red for hover
   disabledButton: '#CBD5E1',
 };
 
+// Updated MODERN_CHART_COLORS to primarily use Jikoni Red and Green derivatives,
+// along with complementary vibrant colors
 const MODERN_CHART_COLORS = [
-  "#60A5FA", "#A78BFA", "#86EFAC", "#FB923C",
-  "#F87171", "#3B82F6", "#C084FC", "#34D399",
-  "#FCD34D", "#EF4444", "#10B981", "#EAB308"
+  colors.primary, // Jikoni Red
+  colors.secondary, // Jikoni Green
+  "#60A5FA", // A vibrant blue
+  "#A78BFA", // A vibrant purple
+  "#FB923C", // A vibrant orange
+  "#F87171", // A lighter red
+  "#3B82F6", // A stronger blue
+  "#C084FC", // A stronger purple
+  "#34D399", // A vibrant aqua-green
+  "#FCD34D", // A vibrant yellow
+  "#10B981", // A deeper green
+  "#EAB308"  // A golden yellow
 ];
 
 const styles = `
@@ -57,10 +68,10 @@ const styles = `
     --placeholder-text: ${colors.placeholderText};
     --button-hover: ${colors.buttonHover};
     --disabled-button: ${colors.disabledButton};
-    --purple-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
     --primary-gradient: linear-gradient(135deg, var(--primary-red) 0%, color-mix(in srgb, var(--primary-red) 80%, black) 100%);
     --success-gradient: linear-gradient(135deg, var(--secondary-green) 0%, color-mix(in srgb, var(--secondary-green) 80%, black) 100%);
     --danger-gradient: linear-gradient(135deg, var(--error-text) 0%, color-mix(in srgb, var(--error-text) 80%, black) 100%);
+    --primary-red-rgb: 255, 69, 50; /* For rgba colors based on primary red */
   }
 
   .dashboard-container {
@@ -77,6 +88,9 @@ const styles = `
     box-shadow: 0 8px 32px rgba(31,38,135,0.1);
     border: 1px solid rgba(255,255,255,0.18);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%; /* Ensure cards in flex/grid rows are equal height */
+    display: flex;
+    flex-direction: column;
   }
   .glass-card:hover {
     transform: translateY(-5px);
@@ -85,7 +99,7 @@ const styles = `
   .metric-highlight {
     font-size: 1.8rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #6366f1, #007aff);
+    background: var(--primary-gradient); /* Use Jikoni Red gradient */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
@@ -119,12 +133,12 @@ const styles = `
     font-weight: 500;
   }
   .fast-moving {
-    background: #d1fae5;
-    color: #065f46;
+    background: ${colors.secondary}30; /* Light green */
+    color: ${colors.secondary};
   }
   .slow-moving {
-    background: #fee2e2;
-    color: #991b1b;
+    background: ${colors.primary}30; /* Light red */
+    color: ${colors.primary};
   }
   .icon-wrapper {
     width: 45px;
@@ -137,19 +151,19 @@ const styles = `
     margin-bottom: 1rem;
   }
   .icon-wrapper.gradient-blue {
-    background: linear-gradient(135deg, #3B82F6, #60A5FA);
+    background: var(--primary-gradient); /* Use Jikoni Red gradient for primary actions */
   }
   .icon-wrapper.gradient-green {
-    background: linear-gradient(135deg, #10B981, #34D399);
+    background: var(--success-gradient); /* Use Jikoni Green gradient for success */
   }
   .icon-wrapper.gradient-orange {
-    background: linear-gradient(135deg, #F97316, #FB923C);
+    background: linear-gradient(135deg, #F97316, #FB923C); /* Keep a vibrant orange */
   }
   .icon-wrapper.gradient-red {
-    background: linear-gradient(135deg, #EF4444, #F87171);
+    background: var(--danger-gradient); /* Use error red gradient */
   }
   .table-hover-modern tbody tr:hover {
-    background: rgba(0,122,255,0.03);
+    background: rgba(var(--primary-red-rgb), 0.03); /* Hover effect using Jikoni Red */
   }
   .analytics-header {
     display: flex;
@@ -168,22 +182,22 @@ const styles = `
     padding: 0.5rem 1rem;
   }
   .analytics-header h2 .text-primary-gradient {
-    background: linear-gradient(45deg, #6366f1, #3b82f6);
+    background: var(--primary-gradient); /* Use Jikoni Red gradient */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   .text-gradient-primary {
-    background: linear-gradient(45deg, #3B82F6, #60A5FA);
+    background: var(--primary-gradient); /* Use Jikoni Red gradient */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   .text-gradient-success {
-    background: linear-gradient(45deg, #10B981, #34D399);
+    background: var(--success-gradient); /* Use Jikoni Green gradient */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   .text-gradient-warning {
-    background: linear-gradient(45deg, #F97316, #FB923C);
+    background: linear-gradient(45deg, #F97316, #FB923C); /* Keep a vibrant orange */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
@@ -208,8 +222,8 @@ const styles = `
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
   .product-card.selected {
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    border-color: var(--primary-red); /* Highlight selected with Jikoni Red */
+    box-shadow: 0 0 0 3px rgba(var(--primary-red-rgb), 0.25);
   }
   .product-image {
     height: 100px;
@@ -221,7 +235,7 @@ const styles = `
     position: absolute;
     top: 10px;
     right: 10px;
-    background-color: ${colors.primary};
+    background-color: var(--primary-red);
     color: white;
     padding: 5px 10px;
     border-radius: 0.5rem;
@@ -267,6 +281,9 @@ const styles = `
     height: 200px;
     width: 200px;
     margin: 0 auto;
+    display: flex; /* Use flexbox to center content */
+    align-items: center;
+    justify-content: center;
   }
 
   .chart-center-text {
@@ -275,6 +292,56 @@ const styles = `
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
+  }
+
+  /* Custom styling for primary button to match Jikoni Red */
+  .btn-primary.modern-button {
+    background-color: var(--primary-red);
+    border-color: var(--primary-red);
+    color: white;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    padding: 0.6rem 1.2rem;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .btn-primary.modern-button:hover {
+    background-color: var(--button-hover);
+    border-color: var(--button-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(var(--primary-red-rgb), 0.3);
+  }
+
+  /* Specific style for success badge to match Jikoni Green */
+  .badge.bg-success {
+    background-color: ${colors.secondary} !important;
+  }
+
+  /* Specific style for primary badge to match Jikoni Red */
+  .badge.bg-primary {
+    background-color: ${colors.primary} !important;
+  }
+
+  /* Style for warning badge to maintain good contrast */
+  .badge.bg-warning {
+    background-color: #FCD34D !important; /* Keep a bright yellow */
+    color: ${colors.darkText} !important;
+  }
+
+  .battery-container {
+    border: 2px solid ${colors.darkText};
+    padding: 4px;
+    border-radius: 4px;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .battery-segment {
+    width: 8px;
+    height: 16px;
+    margin-right: 2px;
+    border-radius: 2px;
   }
 
   @media (max-width: 1200px) {
@@ -456,7 +523,7 @@ const AnalyticsDashboard = () => {
         Math.min(analytics?.peakHour?.revenue || 0, 100000),
         Math.max(0, 100000 - (Math.min(analytics?.peakHour?.revenue || 0, 100000)))
       ],
-      backgroundColor: [colors.secondary, colors.lightBackground],
+      backgroundColor: [colors.secondary, colors.lightBackground], // Jikoni Green for fill
       circumference: 270,
       rotation: 225,
       borderWidth: 0
@@ -469,8 +536,8 @@ const AnalyticsDashboard = () => {
       {
         label: 'Customer Growth',
         data: analytics?.customerGrowth?.map(item => item.count) || [],
-        borderColor: colors.primary,
-        backgroundColor: MODERN_CHART_COLORS[0], // Use a single color for bars
+        borderColor: colors.primary, // Use Jikoni Red for border
+        backgroundColor: colors.primary, // Use Jikoni Red for bars
         barThickness: 30, // Adjust bar thickness for better appearance
       },
     ],
@@ -489,14 +556,10 @@ const AnalyticsDashboard = () => {
         title: { display: true, text: 'Customer Count' },
         ticks: {
           stepSize: 1, // Ensure whole numbers for customer count
-          // No custom callback needed if the data doesn't represent specific thresholds
         },
       },
     },
     maintainAspectRatio: false, // Allow chart to adjust size
-    // Set a smaller height for the chart to make it less "big for nothing"
-    // The parent container (Card) will determine the actual rendered size,
-    // but this gives a hint for chart.js
     aspectRatio: 2, // Width to height ratio (e.g., 2:1 for wider than tall)
   };
 
@@ -506,7 +569,7 @@ const AnalyticsDashboard = () => {
       label: product.name,
       data: product.salesData.map(d => d.units_sold),
       borderColor: MODERN_CHART_COLORS[index % MODERN_CHART_COLORS.length],
-      backgroundColor: `${MODERN_CHART_COLORS[index % MODERN_CHART_COLORS.length]}40`,
+      backgroundColor: `${MODERN_CHART_COLORS[index % MODERN_CHART_COLORS.length]}40`, // Slightly transparent
       tension: 0.3,
       pointRadius: 3,
       fill: false, // Ensure it's a line graph
@@ -519,7 +582,7 @@ const AnalyticsDashboard = () => {
     datasets: [
       {
         data: productCategorySales.map(item => item.revenue),
-        backgroundColor: MODERN_CHART_COLORS,
+        backgroundColor: MODERN_CHART_COLORS, // Use the vibrant modern colors
         hoverOffset: 4,
       },
     ],
@@ -548,8 +611,8 @@ const AnalyticsDashboard = () => {
       {
         label: 'Revenue',
         data: analytics?.revenueTrends?.map(item => item.revenue) || [1000, 1200, 1100, 900, 1500, 1300, 1400],
-        borderColor: colors.primary,
-        backgroundColor: `${colors.primary}20`,
+        borderColor: colors.primary, // Use Jikoni Red for revenue line
+        backgroundColor: `${colors.primary}20`, // Transparent Jikoni Red for fill
         tension: 0.4,
         fill: true,
       },
@@ -646,7 +709,7 @@ const AnalyticsDashboard = () => {
         </div>
       </div>
 
-      <Row className="g-4 mb-4 d-flex align-items-center">
+      <Row className="g-4 mb-4 d-flex align-items-stretch"> {/* Added align-items-stretch */}
         {/* Revenue */}
         <Col xl={4} md={6}>
           <Card className="glass-card p-3">
@@ -685,18 +748,15 @@ const AnalyticsDashboard = () => {
         <Col xl={4} md={6}>
           <Card className="glass-card p-3 d-flex flex-column align-items-center justify-content-center">
             <p className="text-muted mb-1">Business Health</p>
-            <div className="battery-container d-flex align-items-center" style={{ border: `2px solid ${colors.darkText}`, padding: '4px', borderRadius: '4px', position: 'relative' }}>
+            <div className="battery-container d-flex align-items-center">
               {[...Array(4)].map((_, index) => (
                 <div
                   key={index}
                   className="battery-segment"
                   style={{
-                    width: '8px',
-                    height: '16px',
-                    marginRight: '2px',
                     backgroundColor: businessHealthPercent > (index * 25)
                       ? (businessHealthPercent < 30 ? colors.errorText :
-                        businessHealthPercent < 70 ? '#F59E0B' : colors.secondary)
+                          businessHealthPercent < 70 ? '#F59E0B' : colors.secondary) // Jikoni Green for good health
                       : colors.lightBackground
                   }}
                 />
@@ -711,7 +771,7 @@ const AnalyticsDashboard = () => {
       </Row>
 
       {/* Peak Hour Fuel Gauge, Customer Growth Chart & Category Sales Pie Chart */}
-      <Row className="g-4 mb-4">
+      <Row className="g-4 mb-4 d-flex align-items-stretch"> {/* Added align-items-stretch */}
         <Col xl={4} lg={6}>
           <Card className="glass-card p-3">
             <div className="d-flex align-items-center gap-2 mb-3">
@@ -735,10 +795,10 @@ const AnalyticsDashboard = () => {
               </div>
             </div>
             <div className="mt-3 text-center">
-              <Badge bg="success" className="me-2" style={{ backgroundColor: colors.secondary }}>
+              <Badge bg="success" className="me-2"> {/* Uses Jikoni Green from custom style */}
                 Transactions: {analytics?.peakHour?.transactions || 0}
               </Badge>
-              <Badge bg="warning" className="modern-button" style={{ backgroundColor: '#FCD34D', color: colors.darkText }}>
+              <Badge bg="warning"> {/* Uses custom warning color */}
                 Revenue: {formatCurrency(analytics?.peakHour?.revenue || 0)}
               </Badge>
             </div>
@@ -746,29 +806,29 @@ const AnalyticsDashboard = () => {
         </Col>
 
         {/* Customer Growth Chart */}
-        <Col xl={5} lg={6}> {/* Adjusted column size */}
+        <Col xl={5} lg={6}>
           <Card className="glass-card p-3">
             <div className="d-flex align-items-center gap-2 mb-3">
               <Users size={24} />
               <h4 className="text-gradient-primary mb-0">Customer Growth (Weekly)</h4>
             </div>
             {customerGrowthData.labels.length > 0 ? (
-            <div style={{ height: '300px' }}> {/* Set a fixed height for the chart container */}
-              <Bar
-                data={customerGrowthData}
-                options={customerGrowthOptions}
-              />
-            </div>
+              <div style={{ height: '300px' }}>
+                <Bar
+                  data={customerGrowthData}
+                  options={customerGrowthOptions}
+                />
+              </div>
             ) : (
-                <div className="text-center py-4 text-muted">
-                    <p>No customer growth data available for this period.</p>
-                </div>
+              <div className="text-center py-4 text-muted flex-grow-1 d-flex flex-column justify-content-center align-items-center">
+                <p>No customer growth data available for this period.</p>
+              </div>
             )}
           </Card>
         </Col>
 
         {/* Product Category Sales Distribution Pie Chart */}
-        <Col xl={3} lg={12}> {/* Adjusted column size */}
+        <Col xl={3} lg={12}>
           <Card className="glass-card p-3">
             <div className="d-flex align-items-center gap-2 mb-3">
               <Layout size={24} />
@@ -802,7 +862,7 @@ const AnalyticsDashboard = () => {
                 />
               </div>
             ) : (
-              <div className="text-center py-4 text-muted">
+              <div className="text-center py-4 text-muted flex-grow-1 d-flex flex-column justify-content-center align-items-center">
                 <p>No category sales data available.</p>
               </div>
             )}
@@ -836,15 +896,15 @@ const AnalyticsDashboard = () => {
                         {cust.customer_email}
                       </td>
                       <td data-label="Visits">
-                        <Badge bg="primary" style={{ backgroundColor: colors.primary }}>
+                        <Badge bg="primary"> {/* Uses Jikoni Red from custom style */}
                           {cust.transactionCount}
                         </Badge>
                       </td>
-                      <td data-label="Total Spent" className="text-gradient-success">
+                      <td data-label="Total Spent" className="text-gradient-success"> {/* Uses Jikoni Green gradient */}
                         {formatCurrency(cust.lifetimeValue)}
                       </td>
                       <td data-label="Products Bought">
-                        <Badge bg="warning" style={{ backgroundColor: '#FCD34D', color: colors.darkText }}>
+                        <Badge bg="warning"> {/* Uses custom warning color */}
                           {cust.totalProducts || 0}
                         </Badge>
                       </td>
@@ -876,7 +936,7 @@ const AnalyticsDashboard = () => {
       </Card>
 
       {/* Product Sales Trends & Manage Discounts */}
-      <Row className="g-4 mb-4">
+      <Row className="g-4 mb-4 d-flex align-items-stretch"> {/* Added align-items-stretch */}
         <Col xl={8}>
           <Card className="glass-card sales-chart-container p-3">
             <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
@@ -889,22 +949,25 @@ const AnalyticsDashboard = () => {
               </Button>
             </div>
             {productSalesData.labels.length > 0 ? (
-            <Line
-              data={productSalesData}
-              options={{
-                responsive: true,
-                plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } },
-                interaction: { mode: 'nearest', axis: 'x' },
-                scales: {
-                  x: { grid: { display: false }, ticks: { color: colors.darkText } },
-                  y: { beginAtZero: true, ticks: { color: colors.darkText } }
-                }
-              }}
-            />
+              <div style={{ flexGrow: 1, minHeight: '300px' }}> {/* Ensures chart takes available space */}
+                <Line
+                  data={productSalesData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false, // Important for height control
+                    plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } },
+                    interaction: { mode: 'nearest', axis: 'x' },
+                    scales: {
+                      x: { grid: { display: false }, ticks: { color: colors.darkText } },
+                      y: { beginAtZero: true, ticks: { color: colors.darkText } }
+                    }
+                  }}
+                />
+              </div>
             ) : (
-                <div className="text-center py-4 text-muted">
-                    <p>No product sales trend data available for this period.</p>
-                </div>
+              <div className="text-center py-4 text-muted flex-grow-1 d-flex flex-column justify-content-center align-items-center">
+                <p>No product sales trend data available for this period.</p>
+              </div>
             )}
           </Card>
         </Col>
@@ -915,34 +978,93 @@ const AnalyticsDashboard = () => {
               <h5 className="mb-0 fw-bold">Top Products</h5>
               <small className="text-muted">Weekly Performance</small>
             </div>
-            <Carousel className="compact-carousel" indicators={false}>
-              {(analytics?.topProducts || []).map(product => (
-                <Carousel.Item key={product.id}>
-                  <div className="position-relative">
-                    <img
-                      src={
-                        product.image
-                          ? `http://localhost:5001/uploads/${encodeURIComponent(product.image)}`
-                          : 'https://placehold.co/400x280/F0F0F0/ADADAD?text=No+Image'
-                      }
-                      alt={product.name}
-                      className="carousel-image"
-                    />
-                    <div className="carousel-caption d-none d-md-block text-start p-3" style={{ backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: '0 0 0.75rem 0.75rem' }}>
-                      <h5 className="text-white mb-1">{product.name}</h5>
-                      <p className="text-white-50 mb-0">Revenue: {formatCurrency(product.revenue)}</p>
-                      <p className="text-white-50 mb-0">Sold: {product.totalSold}</p>
+            {analytics?.topProducts && analytics.topProducts.length > 0 ? (
+              <Carousel className="compact-carousel" indicators={false}>
+                {(analytics.topProducts || []).map(product => (
+                  <Carousel.Item key={product.id}>
+                    <div className="position-relative">
+                      <img
+                        src={
+                          product.image
+                            ? `http://localhost:5001/uploads/${encodeURIComponent(product.image)}`
+                            : 'https://placehold.co/400x280/F0F0F0/ADADAD?text=No+Image'
+                        }
+                        alt={product.name}
+                        className="carousel-image"
+                      />
+                      <div className="carousel-caption d-none d-md-block text-start p-3" style={{ backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: '0 0 0.75rem 0.75rem' }}>
+                        <h5 className="text-white mb-1">{product.name}</h5>
+                        <p className="text-white-50 mb-0">Revenue: {formatCurrency(product.revenue)}</p>
+                        <p className="text-white-50 mb-0">Sold: {product.totalSold}</p>
+                      </div>
                     </div>
-                  </div>
-                </Carousel.Item>
-              ))}
-            </Carousel>
+                  </Carousel.Item>
+                ))}
+              </Carousel>
+            ) : (
+              <div className="text-center py-4 text-muted flex-grow-1 d-flex flex-column justify-content-center align-items-center">
+                <Package size={32} className="mb-2" style={{ color: colors.borderColor }} />
+                <p>No top products available.</p>
+              </div>
+            )}
           </Card>
         </Col>
       </Row>
 
+      {/* Sales Forecast Chart */}
+      <Card className="glass-card mb-4 p-3">
+        <div className="d-flex align-items-center gap-2 mb-3">
+          <LineChart size={24} />
+          <h4 className="text-gradient-primary mb-0">Sales Forecast</h4>
+        </div>
+        {analytics?.salesForecast?.length > 0 ? (
+          <div style={{ height: '350px' }}>
+            <Line
+              data={{
+                labels: analytics.salesForecast.map(item => item.period),
+                datasets: [
+                  {
+                    label: 'Actual Sales',
+                    data: analytics.salesForecast.map(item => item.actualSales),
+                    borderColor: colors.secondary, // Jikoni Green for actual sales
+                    backgroundColor: `${colors.secondary}20`,
+                    fill: true,
+                    tension: 0.3,
+                  },
+                  {
+                    label: 'Forecasted Sales',
+                    data: analytics.salesForecast.map(item => item.forecastedSales),
+                    borderColor: colors.primary, // Jikoni Red for forecasted sales
+                    backgroundColor: `${colors.primary}20`,
+                    borderDash: [5, 5],
+                    fill: false,
+                    tension: 0.3,
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { position: 'top' },
+                  tooltip: { mode: 'index', intersect: false },
+                },
+                scales: {
+                  x: { grid: { display: false } },
+                  y: { beginAtZero: true },
+                },
+              }}
+            />
+          </div>
+        ) : (
+          <div className="text-center py-4 text-muted">
+            <p>No sales forecast data available.</p>
+          </div>
+        )}
+      </Card>
+
       {/* Payment Methods & Product Movement & Cost Analysis */}
-      <Row className="g-4 mb-4">
+      <Row className="g-4 mb-4 d-flex align-items-stretch">
         {/* Payment Methods */}
         <Col xl={4} md={6}>
           <Card className="glass-card p-3">
@@ -950,27 +1072,42 @@ const AnalyticsDashboard = () => {
               <CreditCard size={24} />
               <h4 className="text-gradient-primary mb-0">Payment Methods</h4>
             </div>
-            {analytics?.paymentMethods?.length > 0 ? (
-              <Table hover className="table-hover-modern mb-0" style={{ color: colors.darkText }}>
-                <thead className="table-light">
-                  <tr>
-                    <th>Method</th>
-                    <th>Transactions</th>
-                    <th>Revenue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {analytics.paymentMethods.map((method, idx) => (
-                    <tr key={idx}>
-                      <td data-label="Method">{method.payment_method}</td>
-                      <td data-label="Transactions">{method.transactions}</td>
-                      <td data-label="Revenue">{formatCurrency(method.totalRevenue)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
+            {analytics?.paymentMethods && Object.keys(analytics.paymentMethods).length > 0 ? (
+              <div style={{ height: '200px', width: '200px', margin: '0 auto' }}>
+                <Pie
+                  data={{
+                    labels: Object.keys(analytics.paymentMethods),
+                    datasets: [{
+                      data: Object.values(analytics.paymentMethods),
+                      backgroundColor: MODERN_CHART_COLORS,
+                      hoverOffset: 4
+                    }]
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { position: 'right' },
+                      tooltip: {
+                        callbacks: {
+                          label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                              label += ': ';
+                            }
+                            if (context.parsed !== null) {
+                              label += formatCurrency(context.parsed);
+                            }
+                            return label;
+                          }
+                        }
+                      }
+                    }
+                  }}
+                />
+              </div>
             ) : (
-              <div className="text-center py-4 text-muted">
+              <div className="text-center py-4 text-muted flex-grow-1 d-flex flex-column justify-content-center align-items-center">
                 <p>No payment method data available.</p>
               </div>
             )}
@@ -981,26 +1118,24 @@ const AnalyticsDashboard = () => {
         <Col xl={4} md={6}>
           <Card className="glass-card p-3">
             <div className="d-flex align-items-center gap-2 mb-3">
-              <Package size={24} />
+              <Repeat size={24} />
               <h4 className="text-gradient-primary mb-0">Product Movement</h4>
             </div>
-            {analytics?.productMovement?.length > 0 ? (
-              <Table hover className="table-hover-modern mb-0" style={{ color: colors.darkText }}>
+            {analytics?.productMovement && analytics.productMovement.length > 0 ? (
+              <Table responsive striped className="table-hover-modern" style={{ color: colors.darkText }}>
                 <thead className="table-light">
                   <tr>
                     <th>Product</th>
-                    <th>Units Sold</th>
                     <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {analytics.productMovement.map((product, idx) => (
-                    <tr key={idx}>
-                      <td data-label="Product">{product.product_name}</td>
-                      <td data-label="Units Sold">{product.units_sold}</td>
+                  {analytics.productMovement.map((item, index) => (
+                    <tr key={index}>
+                      <td data-label="Product">{item.productName}</td>
                       <td data-label="Status">
-                        <Badge className={`status-badge ${Number(product.units_sold) > 5 ? 'fast-moving' : 'slow-moving'}`}>
-                          {Number(product.units_sold) > 5 ? 'Fast Moving' : 'Slow Moving'}
+                        <Badge className={`status-badge ${item.status === 'Fast-Moving' ? 'fast-moving' : 'slow-moving'}`}>
+                          {item.status}
                         </Badge>
                       </td>
                     </tr>
@@ -1008,39 +1143,43 @@ const AnalyticsDashboard = () => {
                 </tbody>
               </Table>
             ) : (
-              <div className="text-center py-4 text-muted">
+              <div className="text-center py-4 text-muted flex-grow-1 d-flex flex-column justify-content-center align-items-center">
                 <p>No product movement data available.</p>
               </div>
             )}
           </Card>
         </Col>
 
-        {/* Cost Analysis by Category (Today) - This is now also used for the Pie Chart above */}
-        <Col xl={4}>
+        {/* Cost Analysis */}
+        <Col xl={4} md={12}>
           <Card className="glass-card p-3">
             <div className="d-flex align-items-center gap-2 mb-3">
               <DollarSign size={24} />
-              <h4 className="text-gradient-primary mb-0">Cost Analysis by Category (Today)</h4>
+              <h4 className="text-gradient-primary mb-0">Cost Analysis</h4>
             </div>
-            {analytics?.costAnalysis?.length > 0 ? (
-              <Table hover className="table-hover-modern mb-0" style={{ color: colors.darkText }}>
+            {analytics?.costAnalysis && analytics.costAnalysis.length > 0 ? (
+              <Table responsive striped className="table-hover-modern" style={{ color: colors.darkText }}>
                 <thead className="table-light">
                   <tr>
                     <th>Category</th>
-                    <th>Total Revenue (Ksh)</th>
+                    <th>Revenue</th>
+                    <th>COGS</th>
+                    <th>Profit</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {analytics.costAnalysis.map((item, idx) => (
-                    <tr key={idx}>
-                      <td data-label="Category">{item.category_name === "Heels" ? "Shoes" : item.category_name}</td> {/* Corrected "Heels" to "Shoes" */}
-                      <td data-label="Total Revenue (Ksh)">{formatCurrency(item.totalRevenue)}</td>
+                  {analytics.costAnalysis.map((item, index) => (
+                    <tr key={index}>
+                      <td data-label="Category">{item.category_name}</td>
+                      <td data-label="Revenue" className="text-gradient-success">{formatCurrency(item.totalRevenue)}</td>
+                      <td data-label="COGS" className="text-gradient-warning">{formatCurrency(item.totalCOGS)}</td>
+                      <td data-label="Profit" className="text-gradient-primary">{formatCurrency(item.totalRevenue - item.totalCOGS)}</td>
                     </tr>
                   ))}
                 </tbody>
               </Table>
             ) : (
-              <div className="text-center py-4 text-muted">
+              <div className="text-center py-4 text-muted flex-grow-1 d-flex flex-column justify-content-center align-items-center">
                 <p>No cost analysis data available.</p>
               </div>
             )}
@@ -1048,70 +1187,83 @@ const AnalyticsDashboard = () => {
         </Col>
       </Row>
 
-      {/* Manage Discounts Modal */}
+      {/* Discount Management Modal */}
       <Modal show={showDiscountModal} onHide={() => setShowDiscountModal(false)} size="lg" centered>
         <Modal.Header closeButton>
           <Modal.Title>
-            <Tag className="me-2" /> Manage Product Discounts
+            <Tag className="me-2" /> Manage Discounts & Customer Communication
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <h5 className="mb-3">Select Products for Discount</h5>
-          <div className="product-grid mb-4">
-            {(analytics?.topProducts || []).map(product => (
-              <Card
-                key={product.id}
-                className={`product-card ${selectedProducts.some(p => p.id === product.id) ? 'selected' : ''}`}
-                onClick={() => toggleProductSelection(product)}
-              >
-                <img
-                  src={
-                    product.image
-                      ? `http://localhost:5001/uploads/${encodeURIComponent(product.image)}`
-                      : 'https://placehold.co/100x100?text=No+Image'
-                  }
-                  alt={product.name}
-                  className="product-image"
-                />
-                <Card.Body className="p-2">
-                  <Card.Title className="mb-0" style={{ fontSize: '0.9rem' }}>{product.name}</Card.Title>
-                  <Card.Text className="text-muted" style={{ fontSize: '0.8rem' }}>
-                    Sold: {product.totalSold} | Revenue: {Number(product.revenue).toLocaleString()}
-                  </Card.Text>
-                </Card.Body>
-              </Card>
-            ))}
-          </div>
-
-          <h5 className="mb-3">Email Template for Selected Products</h5>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Subject</Form.Label>
+          <p className="text-muted mb-3">Select products to send discount offers to loyal customers.</p>
+          <Form.Group className="mb-3">
+            <Form.Label>Email Subject:</Form.Label>
+            <InputGroup>
+              <InputGroup.Text><Send size={18} /></InputGroup.Text>
               <Form.Control
                 type="text"
                 value={emailTemplate.subject}
                 onChange={(e) => setEmailTemplate({ ...emailTemplate, subject: e.target.value })}
-                placeholder="Enter email subject"
               />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Body</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={4}
-                value={emailTemplate.body}
-                onChange={(e) => setEmailTemplate({ ...emailTemplate, body: e.target.value })}
-                placeholder="Enter email body (e.g., 'Get X% off on selected items!')"
-              />
-            </Form.Group>
-          </Form>
+            </InputGroup>
+          </Form.Group>
+          <Form.Group className="mb-4">
+            <Form.Label>Email Body:</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={4}
+              value={emailTemplate.body}
+              onChange={(e) => setEmailTemplate({ ...emailTemplate, body: e.target.value })}
+            />
+          </Form.Group>
+
+          <h5>Available Products:</h5>
+          {discounts.length > 0 ? (
+            <div className="product-grid">
+              {discounts.map(product => (
+                <Card
+                  key={product.id}
+                  className={`product-card ${selectedProducts.some(p => p.id === product.id) ? 'selected' : ''}`}
+                  onClick={() => toggleProductSelection(product)}
+                >
+                  <div className="position-relative">
+                    <img
+                      src={
+                        product.image
+                          ? `http://localhost:5001/uploads/${encodeURIComponent(product.image)}`
+                          : 'https://placehold.co/100x100/F0F0F0/ADADAD?text=No+Image'
+                      }
+                      alt={product.name}
+                      className="product-image"
+                    />
+                    <Badge className="discount-badge">
+                      {product.discount}% OFF
+                    </Badge>
+                  </div>
+                  <Card.Body className="p-2">
+                    <Card.Title className="h6 mb-1 text-dark-text">{product.name}</Card.Title>
+                    <Card.Text className="text-muted small mb-0">
+                      <span className="text-decoration-line-through me-1">{formatCurrency(product.price)}</span>
+                      <span className="fw-bold" style={{ color: colors.primary }}>{formatCurrency(product.price * (1 - product.discount / 100))}</span>
+                    </Card.Text>
+                  </Card.Body>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Alert variant="info" className="text-center">No products available for discounts.</Alert>
+          )}
+
+          {selectedProducts.length > 0 && (
+            <Alert variant="info" className="mt-4">
+              Selected Products: {selectedProducts.map(p => p.name).join(', ')}
+            </Alert>
+          )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDiscountModal(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={sendDiscountEmails} disabled={selectedProducts.length === 0}>
-            <Send className="me-2" size={18} /> Send Discount Emails ({selectedProducts.length})
+          <Button variant="secondary" onClick={() => setShowDiscountModal(false)}>Close</Button>
+          <Button variant="primary" className="modern-button" onClick={sendDiscountEmails} disabled={selectedProducts.length === 0}>
+            <Send className="me-2" /> Send Discount Emails
           </Button>
         </Modal.Footer>
       </Modal>
