@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Card, Spinner, Row, Col, Form, Alert, Carousel, Table, Modal, Button, Badge, Pagination, ListGroup, ListGroupItem, InputGroup
+  Card, Spinner, Row, Col, Form, Alert, Carousel, Table, Modal, Button, Badge, Pagination, InputGroup
 } from 'react-bootstrap';
 import axios from 'axios';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import { Line, Bar, Doughnut, Pie } from 'react-chartjs-2'; // Import Pie
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, LineElement, PointElement, ArcElement, Filler } from 'chart.js';
-
-// Using lucide-react for icons as specified in the guidelines
 import {
-  Coins, ShoppingCart, Clock, LineChart, Users, Tag,
-  CreditCard, Package, Repeat, DollarSign, Send, Star, Download
+  ShoppingCart, Clock, LineChart, Users, Tag,
+  CreditCard, Package, Repeat, DollarSign, Send, Star, Download, Layout
 } from 'lucide-react';
 
 ChartJS.register(
@@ -21,38 +19,45 @@ ChartJS.register(
   Legend,
   LineElement,
   PointElement,
-  ArcElement, // Register ArcElement for doughnut/pie charts
-  Filler // Register Filler plugin for area fills
+  ArcElement,
+  Filler
 );
 
-// New comprehensive color palette for the dashboard
+// Color palette from your request
+const colors = {
+  primary: '#FF4532',
+  secondary: '#00C853',
+  darkText: '#1A202C',
+  lightBackground: '#F0F2F5',
+  cardBackground: '#FFFFFF',
+  borderColor: '#D1D9E6',
+  errorText: '#EF4444',
+  placeholderText: '#A0AEC0',
+  buttonHover: '#E6392B',
+  disabledButton: '#CBD5E1',
+};
+
 const MODERN_CHART_COLORS = [
-  "#60A5FA", // Sky Blue
-  "#A78BFA", // Lavender
-  "#86EFAC", // Emerald Green
-  "#FB923C", // Orange
-  "#F87171", // Rose Red
-  "#3B82F6", // Royal Blue
-  "#C084FC", // Purple
-  "#34D399", // Teal
-  "#FCD34D", // Amber
-  "#EF4444", // Crimson
-  "#10B981", // Forest Green
-  "#EAB308", // Gold
+  "#60A5FA", "#A78BFA", "#86EFAC", "#FB923C",
+  "#F87171", "#3B82F6", "#C084FC", "#34D399",
+  "#FCD34D", "#EF4444", "#10B981", "#EAB308"
 ];
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
   :root {
-    --primary-red: #FF4532;
-    --secondary-green: #00C853;
-    --dark-text: #1A202C;
-    --light-background: #F0F2F5;
-    --card-background: #FFFFFF;
-    --border-color: #D1D9E6;
-    --error-text: #EF4444;
-    --purple-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); /* Example purple gradient */
+    --primary-red: ${colors.primary};
+    --secondary-green: ${colors.secondary};
+    --dark-text: ${colors.darkText};
+    --light-background: ${colors.lightBackground};
+    --card-background: ${colors.cardBackground};
+    --border-color: ${colors.borderColor};
+    --error-text: ${colors.errorText};
+    --placeholder-text: ${colors.placeholderText};
+    --button-hover: ${colors.buttonHover};
+    --disabled-button: ${colors.disabledButton};
+    --purple-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
     --primary-gradient: linear-gradient(135deg, var(--primary-red) 0%, color-mix(in srgb, var(--primary-red) 80%, black) 100%);
     --success-gradient: linear-gradient(135deg, var(--secondary-green) 0%, color-mix(in srgb, var(--secondary-green) 80%, black) 100%);
     --danger-gradient: linear-gradient(135deg, var(--error-text) 0%, color-mix(in srgb, var(--error-text) 80%, black) 100%);
@@ -114,12 +119,12 @@ const styles = `
     font-weight: 500;
   }
   .fast-moving {
-    background: #d1fae5; /* Lighter Green */
-    color: #065f46; /* Darker Green */
+    background: #d1fae5;
+    color: #065f46;
   }
   .slow-moving {
-    background: #fee2e2; /* Lighter Red */
-    color: #991b1b; /* Darker Red */
+    background: #fee2e2;
+    color: #991b1b;
   }
   .icon-wrapper {
     width: 45px;
@@ -131,7 +136,6 @@ const styles = `
     color: white;
     margin-bottom: 1rem;
   }
-  /* Specific icon wrapper gradients */
   .icon-wrapper.gradient-blue {
     background: linear-gradient(135deg, #3B82F6, #60A5FA);
   }
@@ -168,19 +172,18 @@ const styles = `
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-  /* Gradient text colors for various sections */
   .text-gradient-primary {
-    background: linear-gradient(45deg, #3B82F6, #60A5FA); /* Blue gradient */
+    background: linear-gradient(45deg, #3B82F6, #60A5FA);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   .text-gradient-success {
-    background: linear-gradient(45deg, #10B981, #34D399); /* Green gradient */
+    background: linear-gradient(45deg, #10B981, #34D399);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   .text-gradient-warning {
-    background: linear-gradient(45deg, #F97316, #FB923C); /* Orange gradient */
+    background: linear-gradient(45deg, #F97316, #FB923C);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
@@ -218,7 +221,7 @@ const styles = `
     position: absolute;
     top: 10px;
     right: 10px;
-    background-color: #EF4444; /* Crimson Red from palette */
+    background-color: ${colors.primary};
     color: white;
     padding: 5px 10px;
     border-radius: 0.5rem;
@@ -226,7 +229,6 @@ const styles = `
     font-size: 0.8em;
   }
 
-  /* Modal Specific Styles */
   .modal-content {
     border-radius: 1rem;
     border: none;
@@ -235,7 +237,7 @@ const styles = `
   .modal-header {
     border-bottom: none;
     padding: 1.5rem 1.5rem 0.5rem 1.5rem;
-    background-color: var(--light-background); /* Light background for header */
+    background-color: var(--light-background);
     border-top-left-radius: 1rem;
     border-top-right-radius: 1rem;
   }
@@ -246,12 +248,12 @@ const styles = `
   }
   .modal-body {
     padding: 1.5rem;
-    background-color: var(--card-background); /* White background for body */
+    background-color: var(--card-background);
   }
   .modal-footer {
     border-top: none;
     padding: 1rem 1.5rem 1.5rem 1.5rem;
-    background-color: var(--light-background); /* Light background for footer */
+    background-color: var(--light-background);
     border-bottom-left-radius: 1rem;
     border-bottom-right-radius: 1rem;
   }
@@ -275,7 +277,6 @@ const styles = `
     text-align: center;
   }
 
-  /* Responsive Adjustments */
   @media (max-width: 1200px) {
     .analytics-header {
       flex-direction: column;
@@ -290,7 +291,7 @@ const styles = `
       margin-top: 0.5rem;
     }
     .compact-carousel {
-      height: 250px; /* Slightly reduce height for smaller screens */
+      height: 250px;
     }
     .carousel-image {
       height: 250px;
@@ -305,7 +306,7 @@ const styles = `
       font-size: 1.5rem;
     }
     .compact-carousel {
-      height: 200px; /* Further reduce height for mobile */
+      height: 200px;
     }
     .carousel-image {
       height: 200px;
@@ -340,11 +341,11 @@ const styles = `
       font-size: 1.2rem;
     }
     .table-responsive {
-      border: 1px solid var(--border-color); /* Add border for better table appearance on small screens */
+      border: 1px solid var(--border-color);
       border-radius: 0.75rem;
     }
     .table-hover-modern thead {
-      display: none; /* Hide table header on very small screens if preferred */
+      display: none;
     }
     .table-hover-modern tbody tr {
       display: block;
@@ -383,32 +384,52 @@ const AnalyticsDashboard = () => {
     subject: 'New Discount Alert!',
     body: 'Check out these amazing deals just for you!'
   });
+  const [productCategorySales, setProductCategorySales] = useState([]); // New state for category sales
 
   useEffect(() => {
+    const token = localStorage.getItem('accessToken');
     const fetchAnalytics = async () => {
       setLoading(true);
       try {
-      const url = timeRange
-    ? `http://localhost:5001/api/sales/analytics?range=${timeRange}`
-    : `http://localhost:5001/api/sales/analytics`;
+        const url = `http://localhost:5001/api/sales/analytics?range=${timeRange}`;
+        const { data } = await axios.get(url, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          withCredentials: true
+        });
+        setAnalytics(data);
 
-  const { data } = await axios.get(url);
-  setAnalytics(data);
-  console.log(data);
+        // Process cost analysis data for pie chart
+        if (data.costAnalysis && data.costAnalysis.length > 0) {
+          const categorySales = data.costAnalysis.map(item => ({
+            category: item.category_name === "Heels" ? "Shoes" : item.category_name, // Corrected "Heels" to "Shoes"
+            revenue: Number(item.totalRevenue)
+          }));
+          setProductCategorySales(categorySales);
+        } else {
+          setProductCategorySales([]);
+        }
+
       } catch (err) {
         console.error('Error fetching analytics:', err);
-        setError('Failed to load analytics data. Please ensure the backend server is running and accessible.');
+        setError('Failed to load analytics data. Please ensure the backend server is running.');
       } finally {
         setLoading(false);
       }
     };
-    fetchAnalytics();
+
+    if (token) {
+      fetchAnalytics();
+    } else {
+      setError('No access token found. Please log in again.');
+    }
   }, [timeRange]);
 
   useEffect(() => {
     const loadDiscounts = async () => {
       try {
-        const { data } = await axios.get('http://localhost:5000/api/discounts');
+        const { data } = await axios.get('http://localhost:5001/api/discounts');
         setDiscounts(data);
       } catch (err) {
         console.error('Error loading discounts:', err);
@@ -425,7 +446,6 @@ const AnalyticsDashboard = () => {
   // Loyal Customer Pagination
   const indexOfLastCustomer = currentPage * customersPerPage;
   const indexOfFirstCustomer = indexOfLastCustomer - customersPerPage;
-
   const currentCustomers = repeatCustomers.slice(indexOfFirstCustomer, indexOfLastCustomer);
   const totalCustomerPages = Math.ceil(repeatCustomers.length / customersPerPage);
 
@@ -436,7 +456,7 @@ const AnalyticsDashboard = () => {
         Math.min(analytics?.peakHour?.revenue || 0, 100000),
         Math.max(0, 100000 - (Math.min(analytics?.peakHour?.revenue || 0, 100000)))
       ],
-      backgroundColor: ['#00ff00', '#e0e0e0'], // Using colors from the original request
+      backgroundColor: [colors.secondary, colors.lightBackground],
       circumference: 270,
       rotation: 225,
       borderWidth: 0
@@ -444,21 +464,14 @@ const AnalyticsDashboard = () => {
   };
 
   const customerGrowthData = {
-    labels: analytics?.customerGrowth?.map(item => item.week) || ['Week 1', 'Week 2', 'Week 3', 'Week 4'], // This should ideally come from analytics data
+    labels: analytics?.customerGrowth?.map(item => item.period) || [], // Use 'period' as labels
     datasets: [
       {
         label: 'Customer Growth',
-        data: analytics?.customerGrowth?.map(item => item.count) || [100, 250, 400, 500], // This should also come from analytics data
-        borderColor: '#3B82F6',
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-        pointRadius: 6,
-        pointBackgroundColor: (context) => {
-          const value = context.raw;
-          if (value <= 200) return '#EF4444';
-          if (value <= 400) return '#F97316';
-          return '#34D399';
-        },
-        pointHoverBackgroundColor: '#2196F3',
+        data: analytics?.customerGrowth?.map(item => item.count) || [],
+        borderColor: colors.primary,
+        backgroundColor: MODERN_CHART_COLORS[0], // Use a single color for bars
+        barThickness: 30, // Adjust bar thickness for better appearance
       },
     ],
   };
@@ -470,20 +483,21 @@ const AnalyticsDashboard = () => {
       tooltip: { mode: 'index' },
     },
     scales: {
-      x: { grid: { display: false }, title: { display: true, text: 'Weeks' } },
+      x: { grid: { display: false }, title: { display: true, text: 'Week' } }, // Changed title to 'Week'
       y: {
         beginAtZero: true,
         title: { display: true, text: 'Customer Count' },
         ticks: {
-          callback: (value) => {
-            if (value === 200) return 'Low';
-            if (value === 400) return 'Medium';
-            if (value > 400) return 'High';
-            return value;
-          },
+          stepSize: 1, // Ensure whole numbers for customer count
+          // No custom callback needed if the data doesn't represent specific thresholds
         },
       },
     },
+    maintainAspectRatio: false, // Allow chart to adjust size
+    // Set a smaller height for the chart to make it less "big for nothing"
+    // The parent container (Card) will determine the actual rendered size,
+    // but this gives a hint for chart.js
+    aspectRatio: 2, // Width to height ratio (e.g., 2:1 for wider than tall)
   };
 
   const productSalesData = {
@@ -491,20 +505,33 @@ const AnalyticsDashboard = () => {
     datasets: (analytics?.productSalesTrends || []).map((product, index) => ({
       label: product.name,
       data: product.salesData.map(d => d.units_sold),
-      borderColor: (analytics?.chartColors ? analytics.chartColors[index % analytics.chartColors.length] : MODERN_CHART_COLORS[index % MODERN_CHART_COLORS.length]),
-      backgroundColor: `${(analytics?.chartColors ? analytics.chartColors[index % analytics.chartColors.length] : MODERN_CHART_COLORS[index % MODERN_CHART_COLORS.length])}40`,
+      borderColor: MODERN_CHART_COLORS[index % MODERN_CHART_COLORS.length],
+      backgroundColor: `${MODERN_CHART_COLORS[index % MODERN_CHART_COLORS.length]}40`,
       tension: 0.3,
-      pointRadius: 3
+      pointRadius: 3,
+      fill: false, // Ensure it's a line graph
     }))
+  };
+
+  // New Pie Chart Data for Product Category Sales
+  const productCategoryPieData = {
+    labels: productCategorySales.map(item => item.category),
+    datasets: [
+      {
+        data: productCategorySales.map(item => item.revenue),
+        backgroundColor: MODERN_CHART_COLORS,
+        hoverOffset: 4,
+      },
+    ],
   };
 
   const exportToExcel = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/sales/export', { responseType: 'blob' }); // Get as blob
+      const { data } = await axios.get('http://localhost:5001/api/sales/export', { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'sales_report.xlsx'); // Set filename
+      link.setAttribute('download', 'sales_report.xlsx');
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
@@ -515,39 +542,33 @@ const AnalyticsDashboard = () => {
     }
   };
 
-  // This data will now ideally be populated by the fetchAnalytics API call
   const revenueChartData = {
     labels: analytics?.revenueTrends?.map(item => item.date) || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     datasets: [
       {
         label: 'Revenue',
         data: analytics?.revenueTrends?.map(item => item.revenue) || [1000, 1200, 1100, 900, 1500, 1300, 1400],
-        borderColor: '#6366F1',
-        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+        borderColor: colors.primary,
+        backgroundColor: `${colors.primary}20`,
         tension: 0.4,
         fill: true,
       },
     ],
   };
 
-
   const businessHealthPercent = useMemo(() => {
     if (analytics?.costAnalysis?.length > 0) {
+      // Calculate overall COGS (assuming 70% of total revenue is COGS for calculation if not provided)
       const overallCOGS = analytics.costAnalysis.reduce((sum, item) => sum + (Number(item.totalCOGS) || 0), 0);
       const overallRevenue = analytics.costAnalysis.reduce((sum, item) => sum + (Number(item.totalRevenue) || 0), 0);
 
+      // If no COGS data is provided, estimate it as 70% of revenue for calculation purposes
+      const calculatedCOGS = overallCOGS === 0 && overallRevenue > 0 ? overallRevenue * 0.7 : overallCOGS;
+
       if (overallRevenue === 0) return 0;
 
-      if (overallRevenue < 100000 && overallCOGS > overallRevenue * 0.8) { // Example: if revenue is low and COGS is high relative to it
-        return 20;
-      }
-      if (overallRevenue < 100000 && overallCOGS <= overallRevenue * 0.8) {
-        return 40;
-      }
-
-      let health = ((overallRevenue - overallCOGS) / overallRevenue) * 100;
-
-      return Math.min(Math.max(health, 0), 100); // Ensure health is between 0 and 100
+      let health = ((overallRevenue - calculatedCOGS) / overallRevenue) * 100;
+      return Math.min(Math.max(health, 0), 100);
     }
     return 0;
   }, [analytics]);
@@ -566,18 +587,22 @@ const AnalyticsDashboard = () => {
       return;
     }
     try {
-      const { data } = await axios.post('http://localhost:5000/api/discounts/notify', {
+      const { data } = await axios.post('http://localhost:5001/api/discounts/notify', {
         productIds: selectedProducts.map(p => p.id),
         emailSubject: emailTemplate.subject,
         emailBody: emailTemplate.body
       });
       alert(`Emails sent to ${data.sentCount} customers!`);
       setShowDiscountModal(false);
-      setSelectedProducts([]); // Clear selection after sending
+      setSelectedProducts([]);
     } catch (err) {
       console.error('Email send error:', err);
-      alert('Failed to send emails. Check console for details and ensure backend email service is configured.');
+      alert('Failed to send emails. Check console for details.');
     }
+  };
+
+  const formatCurrency = (value) => {
+    return `Ksh ${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   if (loading)
@@ -632,7 +657,7 @@ const AnalyticsDashboard = () => {
               <div>
                 <h5 className="text-muted mb-1">Revenue Per Day</h5>
                 <div className="metric-highlight">
-                  Ksh {Number(analytics?.todaySales?.totalSales || 0).toLocaleString()}
+                  {formatCurrency(analytics?.todaySales?.totalSales || 0)}
                 </div>
               </div>
             </div>
@@ -660,7 +685,7 @@ const AnalyticsDashboard = () => {
         <Col xl={4} md={6}>
           <Card className="glass-card p-3 d-flex flex-column align-items-center justify-content-center">
             <p className="text-muted mb-1">Business Health</p>
-            <div className="battery-container d-flex align-items-center" style={{ border: '2px solid var(--dark-text)', padding: '4px', borderRadius: '4px', position: 'relative' }}>
+            <div className="battery-container d-flex align-items-center" style={{ border: `2px solid ${colors.darkText}`, padding: '4px', borderRadius: '4px', position: 'relative' }}>
               {[...Array(4)].map((_, index) => (
                 <div
                   key={index}
@@ -670,14 +695,13 @@ const AnalyticsDashboard = () => {
                     height: '16px',
                     marginRight: '2px',
                     backgroundColor: businessHealthPercent > (index * 25)
-                      ? (businessHealthPercent < 30 ? 'var(--error-text)' :
-                        businessHealthPercent < 70 ? '#F59E0B' :
-                          'var(--secondary-green)')
-                      : '#ccc'
+                      ? (businessHealthPercent < 30 ? colors.errorText :
+                        businessHealthPercent < 70 ? '#F59E0B' : colors.secondary)
+                      : colors.lightBackground
                   }}
                 />
               ))}
-              <div style={{ width: '3px', height: '10px', backgroundColor: 'var(--dark-text)', position: 'absolute', right: '-5px', top: '50%', transform: 'translateY(-50%)', borderRadius: '2px' }}></div>
+              <div style={{ width: '3px', height: '10px', backgroundColor: colors.darkText, position: 'absolute', right: '-5px', top: '50%', transform: 'translateY(-50%)', borderRadius: '2px' }}></div>
             </div>
             <div className="metric-highlight mt-2">
               {businessHealthPercent.toFixed(0)}%
@@ -686,7 +710,7 @@ const AnalyticsDashboard = () => {
         </Col>
       </Row>
 
-      {/* Peak Hour Fuel Gauge and Customer Growth Chart */}
+      {/* Peak Hour Fuel Gauge, Customer Growth Chart & Category Sales Pie Chart */}
       <Row className="g-4 mb-4">
         <Col xl={4} lg={6}>
           <Card className="glass-card p-3">
@@ -706,32 +730,82 @@ const AnalyticsDashboard = () => {
                 }}
               />
               <div className="chart-center-text">
-                <div className="h3 mb-0" style={{ color: 'var(--dark-text)' }}>{analytics?.peakHour?.hour || '--'}:00</div>
+                <div className="h3 mb-0" style={{ color: colors.darkText }}>{analytics?.peakHour?.hour || '--'}:00</div>
                 <small className="text-muted">Peak Hour</small>
               </div>
             </div>
             <div className="mt-3 text-center">
-              <Badge bg="success" className="me-2 modern-button btn-success">
+              <Badge bg="success" className="me-2" style={{ backgroundColor: colors.secondary }}>
                 Transactions: {analytics?.peakHour?.transactions || 0}
               </Badge>
-              <Badge bg="warning" className="modern-button" style={{ backgroundColor: '#FCD34D', color: 'var(--dark-text)' }}>
-                Revenue: Ksh {Number(analytics?.peakHour?.revenue || 0).toLocaleString()}
+              <Badge bg="warning" className="modern-button" style={{ backgroundColor: '#FCD34D', color: colors.darkText }}>
+                Revenue: {formatCurrency(analytics?.peakHour?.revenue || 0)}
               </Badge>
             </div>
           </Card>
         </Col>
 
         {/* Customer Growth Chart */}
-        <Col xl={8}>
+        <Col xl={5} lg={6}> {/* Adjusted column size */}
           <Card className="glass-card p-3">
             <div className="d-flex align-items-center gap-2 mb-3">
               <Users size={24} />
               <h4 className="text-gradient-primary mb-0">Customer Growth (Weekly)</h4>
             </div>
-            <Bar
-              data={customerGrowthData}
-              options={customerGrowthOptions}
-            />
+            {customerGrowthData.labels.length > 0 ? (
+            <div style={{ height: '300px' }}> {/* Set a fixed height for the chart container */}
+              <Bar
+                data={customerGrowthData}
+                options={customerGrowthOptions}
+              />
+            </div>
+            ) : (
+                <div className="text-center py-4 text-muted">
+                    <p>No customer growth data available for this period.</p>
+                </div>
+            )}
+          </Card>
+        </Col>
+
+        {/* Product Category Sales Distribution Pie Chart */}
+        <Col xl={3} lg={12}> {/* Adjusted column size */}
+          <Card className="glass-card p-3">
+            <div className="d-flex align-items-center gap-2 mb-3">
+              <Layout size={24} />
+              <h4 className="text-gradient-primary mb-0">Category Sales</h4>
+            </div>
+            {productCategoryPieData.labels.length > 0 ? (
+              <div style={{ height: '200px', width: '200px', margin: '0 auto' }}>
+                <Pie
+                  data={productCategoryPieData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { position: 'right' },
+                      tooltip: {
+                        callbacks: {
+                          label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed !== null) {
+                                label += formatCurrency(context.parsed);
+                            }
+                            return label;
+                          }
+                        }
+                      }
+                    },
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="text-center py-4 text-muted">
+                <p>No category sales data available.</p>
+              </div>
+            )}
           </Card>
         </Col>
       </Row>
@@ -745,7 +819,7 @@ const AnalyticsDashboard = () => {
         {repeatCustomers.length > 0 ? (
           <>
             <div className="table-responsive">
-              <Table hover className="table-hover-modern mb-0" style={{ color: 'var(--dark-text)' }}>
+              <Table hover className="table-hover-modern mb-0" style={{ color: colors.darkText }}>
                 <thead className="table-light">
                   <tr>
                     <th>Customer</th>
@@ -762,15 +836,15 @@ const AnalyticsDashboard = () => {
                         {cust.customer_email}
                       </td>
                       <td data-label="Visits">
-                        <Badge bg="primary" className="modern-button btn-primary" style={{ backgroundColor: '#3B82F6' }}>
+                        <Badge bg="primary" style={{ backgroundColor: colors.primary }}>
                           {cust.transactionCount}
                         </Badge>
                       </td>
                       <td data-label="Total Spent" className="text-gradient-success">
-                        Ksh {Number(cust.lifetimeValue).toLocaleString()}
+                        {formatCurrency(cust.lifetimeValue)}
                       </td>
                       <td data-label="Products Bought">
-                        <Badge bg="warning" className="modern-button" style={{ backgroundColor: '#FCD34D', color: 'var(--dark-text)' }}>
+                        <Badge bg="warning" style={{ backgroundColor: '#FCD34D', color: colors.darkText }}>
                           {cust.totalProducts || 0}
                         </Badge>
                       </td>
@@ -795,7 +869,7 @@ const AnalyticsDashboard = () => {
           </>
         ) : (
           <div className="text-center py-4 text-muted">
-            <Users size={32} className="mb-2" style={{ color: 'var(--border-color)' }} />
+            <Users size={32} className="mb-2" style={{ color: colors.borderColor }} />
             <p>No repeat customers yet.</p>
           </div>
         )}
@@ -814,6 +888,7 @@ const AnalyticsDashboard = () => {
                 <Tag className="me-2" /> Manage Discounts
               </Button>
             </div>
+            {productSalesData.labels.length > 0 ? (
             <Line
               data={productSalesData}
               options={{
@@ -821,17 +896,22 @@ const AnalyticsDashboard = () => {
                 plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } },
                 interaction: { mode: 'nearest', axis: 'x' },
                 scales: {
-                  x: { grid: { display: false }, ticks: { color: 'var(--dark-text)' } },
-                  y: { beginAtZero: true, ticks: { color: 'var(--dark-text)' } }
+                  x: { grid: { display: false }, ticks: { color: colors.darkText } },
+                  y: { beginAtZero: true, ticks: { color: colors.darkText } }
                 }
               }}
             />
+            ) : (
+                <div className="text-center py-4 text-muted">
+                    <p>No product sales trend data available for this period.</p>
+                </div>
+            )}
           </Card>
         </Col>
 
         <Col xl={4}>
           <Card className="glass-card p-3">
-            <div className="d-flex justify-content-between align-items-center mb-3" style={{ color: 'var(--dark-text)' }}>
+            <div className="d-flex justify-content-between align-items-center mb-3" style={{ color: colors.darkText }}>
               <h5 className="mb-0 fw-bold">Top Products</h5>
               <small className="text-muted">Weekly Performance</small>
             </div>
@@ -842,224 +922,196 @@ const AnalyticsDashboard = () => {
                     <img
                       src={
                         product.image
-                          ? `http://localhost:5000/uploads/${encodeURIComponent(product.image)}` // Assuming local server for images
+                          ? `http://localhost:5001/uploads/${encodeURIComponent(product.image)}`
                           : 'https://placehold.co/400x280/F0F0F0/ADADAD?text=No+Image'
                       }
-                      className="carousel-image"
                       alt={product.name}
-                      onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/400x280/F0F0F0/ADADAD?text=No+Image" }}
+                      className="carousel-image"
                     />
-                    {product.discount > 0 && (
-                      <div className="discount-badge">
-                        {product.discount}% OFF
-                      </div>
-                    )}
-                    <div className="carousel-caption bg-dark bg-opacity-75 p-3" style={{ borderRadius: '0 0 0.75rem 0.75rem' }}>
-                      <h6 className="mb-1 text-white">{product.name}</h6>
-                      <div className="d-flex justify-content-between align-items-center text-white">
-                        <span> Revenue <br /> Today </span>
-                        <span className='fw-bold bg-white p-2 rounded-lg' style={{ color: 'var(--dark-text)' }}>KSH {Number(product.revenue || 0).toLocaleString()}</span>
-                      </div>
+                    <div className="carousel-caption d-none d-md-block text-start p-3" style={{ backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: '0 0 0.75rem 0.75rem' }}>
+                      <h5 className="text-white mb-1">{product.name}</h5>
+                      <p className="text-white-50 mb-0">Revenue: {formatCurrency(product.revenue)}</p>
+                      <p className="text-white-50 mb-0">Sold: {product.totalSold}</p>
                     </div>
                   </div>
                 </Carousel.Item>
               ))}
             </Carousel>
-            {(analytics?.topProducts || []).length === 0 && (
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Payment Methods & Product Movement & Cost Analysis */}
+      <Row className="g-4 mb-4">
+        {/* Payment Methods */}
+        <Col xl={4} md={6}>
+          <Card className="glass-card p-3">
+            <div className="d-flex align-items-center gap-2 mb-3">
+              <CreditCard size={24} />
+              <h4 className="text-gradient-primary mb-0">Payment Methods</h4>
+            </div>
+            {analytics?.paymentMethods?.length > 0 ? (
+              <Table hover className="table-hover-modern mb-0" style={{ color: colors.darkText }}>
+                <thead className="table-light">
+                  <tr>
+                    <th>Method</th>
+                    <th>Transactions</th>
+                    <th>Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analytics.paymentMethods.map((method, idx) => (
+                    <tr key={idx}>
+                      <td data-label="Method">{method.payment_method}</td>
+                      <td data-label="Transactions">{method.transactions}</td>
+                      <td data-label="Revenue">{formatCurrency(method.totalRevenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            ) : (
               <div className="text-center py-4 text-muted">
-                <Package size={32} className="mb-2" style={{ color: 'var(--border-color)' }} />
-                <p>No top products to display.</p>
+                <p>No payment method data available.</p>
+              </div>
+            )}
+          </Card>
+        </Col>
+
+        {/* Product Movement */}
+        <Col xl={4} md={6}>
+          <Card className="glass-card p-3">
+            <div className="d-flex align-items-center gap-2 mb-3">
+              <Package size={24} />
+              <h4 className="text-gradient-primary mb-0">Product Movement</h4>
+            </div>
+            {analytics?.productMovement?.length > 0 ? (
+              <Table hover className="table-hover-modern mb-0" style={{ color: colors.darkText }}>
+                <thead className="table-light">
+                  <tr>
+                    <th>Product</th>
+                    <th>Units Sold</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analytics.productMovement.map((product, idx) => (
+                    <tr key={idx}>
+                      <td data-label="Product">{product.product_name}</td>
+                      <td data-label="Units Sold">{product.units_sold}</td>
+                      <td data-label="Status">
+                        <Badge className={`status-badge ${Number(product.units_sold) > 5 ? 'fast-moving' : 'slow-moving'}`}>
+                          {Number(product.units_sold) > 5 ? 'Fast Moving' : 'Slow Moving'}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            ) : (
+              <div className="text-center py-4 text-muted">
+                <p>No product movement data available.</p>
+              </div>
+            )}
+          </Card>
+        </Col>
+
+        {/* Cost Analysis by Category (Today) - This is now also used for the Pie Chart above */}
+        <Col xl={4}>
+          <Card className="glass-card p-3">
+            <div className="d-flex align-items-center gap-2 mb-3">
+              <DollarSign size={24} />
+              <h4 className="text-gradient-primary mb-0">Cost Analysis by Category (Today)</h4>
+            </div>
+            {analytics?.costAnalysis?.length > 0 ? (
+              <Table hover className="table-hover-modern mb-0" style={{ color: colors.darkText }}>
+                <thead className="table-light">
+                  <tr>
+                    <th>Category</th>
+                    <th>Total Revenue (Ksh)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analytics.costAnalysis.map((item, idx) => (
+                    <tr key={idx}>
+                      <td data-label="Category">{item.category_name === "Heels" ? "Shoes" : item.category_name}</td> {/* Corrected "Heels" to "Shoes" */}
+                      <td data-label="Total Revenue (Ksh)">{formatCurrency(item.totalRevenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            ) : (
+              <div className="text-center py-4 text-muted">
+                <p>No cost analysis data available.</p>
               </div>
             )}
           </Card>
         </Col>
       </Row>
 
-      {/* Payment Methods Breakdown */}
-      <Card className="glass-card mb-4 p-3">
-        <div className="d-flex align-items-center gap-2 mb-3">
-          <CreditCard size={24} />
-          <h4 className="text-gradient-primary mb-0">Payment Methods Breakdown (Today)</h4>
-        </div>
-        {analytics.paymentMethods?.length > 0 ? (
-          <div className="table-responsive">
-            <Table bordered hover className="table-hover-modern mb-0" style={{ color: 'var(--dark-text)' }}>
-              <thead className="table-light">
-                <tr>
-                  <th>Method</th>
-                  <th>Transactions</th>
-                  <th>Total Revenue (Ksh)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analytics.paymentMethods.map((pm, index) => (
-                  <tr key={index}>
-                    <td data-label="Method">{pm.payment_method}</td>
-                    <td data-label="Transactions">{pm.transactions}</td>
-                    <td data-label="Total Revenue (Ksh)" className="text-gradient-success">
-                      Ksh {Number(pm.totalRevenue).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </div>
-        ) : (
-          <div className="text-center py-4 text-muted">
-            <CreditCard size={32} className="mb-2" style={{ color: 'var(--border-color)' }} />
-            <p>No payment data available for today.</p>
-          </div>
-        )}
-      </Card>
-
-      {/* Cost Analysis by Category */}
-      <Card className="glass-card mb-4 p-3">
-        <div className="d-flex align-items-center gap-2 mb-3">
-          <Repeat size={24} />
-          <h4 className="text-gradient-primary mb-0">Cost Analysis by Category (Today)</h4>
-        </div>
-        {analytics.costAnalysis?.length > 0 ? (
-          <div className="table-responsive">
-            <Table bordered hover className="table-hover-modern mb-0" style={{ color: 'var(--dark-text)' }}>
-              <thead className="table-light">
-                <tr>
-                  <th>Category</th>
-                  <th>Total COGS (Ksh)</th>
-                  <th>Total Revenue (Ksh)</th>
-                  <th>Profit Margin (%)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analytics.costAnalysis.map((cat, idx) => {
-                  const profitMargin = cat.totalRevenue > 0
-                    ? ((cat.totalRevenue - cat.totalCOGS) / cat.totalRevenue * 100).toFixed(2)
-                    : '0.00';
-                  return (
-                    <tr key={idx}>
-                      <td data-label="Category">{cat.category}</td>
-                      <td data-label="Total COGS (Ksh)">{Number(cat.totalCOGS).toLocaleString()}</td>
-                      <td data-label="Total Revenue (Ksh)">{Number(cat.totalRevenue).toLocaleString()}</td>
-                      <td data-label="Profit Margin (%)">{profitMargin}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </Table>
-          </div>
-        ) : (
-          <div className="text-center py-4 text-muted">
-            <Repeat size={32} className="mb-2" style={{ color: 'var(--border-color)' }} />
-            <p>No cost analysis data available.</p>
-          </div>
-        )}
-      </Card>
-
-      {/* Product Movement Section */}
-      <Card className="glass-card mb-4 p-3">
-        <div className="d-flex align-items-center gap-2 mb-3">
-          <Package size={24} />
-          <h4 className="text-gradient-primary mb-0">Product Movement (Today)</h4>
-        </div>
-        {analytics.productMovement?.length > 0 ? (
-          <div className="table-responsive">
-            <Table hover className="table-hover-modern mb-0" style={{ color: 'var(--dark-text)' }}>
-              <thead className="table-light">
-                <tr>
-                  <th>Product</th>
-                  <th>Units Sold</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analytics.productMovement.map((product, idx) => (
-                  <tr key={idx}>
-                    <td data-label="Product">
-                      <span className="me-2">📦</span> {product.product_name}
-                    </td>
-                    <td data-label="Units Sold">{product.units_sold}</td>
-                    <td data-label="Status">
-                      <Badge className={`status-badge ${product.units_sold > 50 ? 'fast-moving' : 'slow-moving'}`}>
-                        {product.units_sold > 50 ? 'Fast Moving' : 'Slow Moving'}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </div>
-        ) : (
-          <div className="text-center py-4 text-muted">
-            <Package size={32} className="mb-2" style={{ color: 'var(--border-color)' }} />
-            <p>No product movement data available for today.</p>
-          </div>
-        )}
-      </Card>
-
-      {/* Discount Management Modal */}
+      {/* Manage Discounts Modal */}
       <Modal show={showDiscountModal} onHide={() => setShowDiscountModal(false)} size="lg" centered>
         <Modal.Header closeButton>
-          <Modal.Title><Tag className="me-2" /> Manage Discounts</Modal.Title>
+          <Modal.Title>
+            <Tag className="me-2" /> Manage Product Discounts
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>Email Subject</Form.Label>
-            <InputGroup>
-              <InputGroup.Text><Send size={18} /></InputGroup.Text>
+          <h5 className="mb-3">Select Products for Discount</h5>
+          <div className="product-grid mb-4">
+            {(analytics?.topProducts || []).map(product => (
+              <Card
+                key={product.id}
+                className={`product-card ${selectedProducts.some(p => p.id === product.id) ? 'selected' : ''}`}
+                onClick={() => toggleProductSelection(product)}
+              >
+                <img
+                  src={
+                    product.image
+                      ? `http://localhost:5001/uploads/${encodeURIComponent(product.image)}`
+                      : 'https://placehold.co/100x100?text=No+Image'
+                  }
+                  alt={product.name}
+                  className="product-image"
+                />
+                <Card.Body className="p-2">
+                  <Card.Title className="mb-0" style={{ fontSize: '0.9rem' }}>{product.name}</Card.Title>
+                  <Card.Text className="text-muted" style={{ fontSize: '0.8rem' }}>
+                    Sold: {product.totalSold} | Revenue: {Number(product.revenue).toLocaleString()}
+                  </Card.Text>
+                </Card.Body>
+              </Card>
+            ))}
+          </div>
+
+          <h5 className="mb-3">Email Template for Selected Products</h5>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Subject</Form.Label>
               <Form.Control
                 type="text"
                 value={emailTemplate.subject}
                 onChange={(e) => setEmailTemplate({ ...emailTemplate, subject: e.target.value })}
+                placeholder="Enter email subject"
               />
-            </InputGroup>
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Email Body</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              value={emailTemplate.body}
-              onChange={(e) => setEmailTemplate({ ...emailTemplate, body: e.target.value })}
-            />
-          </Form.Group>
-
-      {Array.isArray(discounts) && discounts.length > 0 ? (
-  <div className="product-grid">
-    {discounts.map(product => (
-      <Card
-        key={product.id}
-        className={`product-card ${selectedProducts.some(p => p.id === product.id) ? 'selected' : ''}`}
-        onClick={() => toggleProductSelection(product)}
-      >
-                  <Card.Img variant="top" src={product.image || 'https://placehold.co/150x100?text=Product'} className="product-image" />
-                  <Card.Body className="p-2">
-                    <Card.Title className="mb-1" style={{ fontSize: '0.9rem', color: 'var(--dark-text)' }}>
-                      {product.name}
-                    </Card.Title>
-                    <Card.Text className="text-muted" style={{ fontSize: '0.8rem' }}>
-                      Ksh {Number(product.price).toLocaleString()}
-                    </Card.Text>
-                    {product.currentDiscount > 0 && (
-                      <Badge bg="info" className="position-absolute top-0 end-0 m-2">
-                        {product.currentDiscount}% Off
-                      </Badge>
-                    )}
-                  </Card.Body>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-3 text-muted">
-              <Package size={28} className="mb-2" style={{ color: 'var(--border-color)' }} />
-              <p>No products available to offer discounts.</p>
-            </div>
-          )}
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Body</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={4}
+                value={emailTemplate.body}
+                onChange={(e) => setEmailTemplate({ ...emailTemplate, body: e.target.value })}
+                placeholder="Enter email body (e.g., 'Get X% off on selected items!')"
+              />
+            </Form.Group>
+          </Form>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowDiscountModal(false)}>
-            Cancel
+            Close
           </Button>
           <Button variant="primary" onClick={sendDiscountEmails} disabled={selectedProducts.length === 0}>
-            <Send className="me-2" /> Send Discount Emails ({selectedProducts.length})
+            <Send className="me-2" size={18} /> Send Discount Emails ({selectedProducts.length})
           </Button>
         </Modal.Footer>
       </Modal>

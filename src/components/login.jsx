@@ -222,7 +222,7 @@ const handleSubmit = async (values, { setSubmitting }) => {
         // Redirect based on role
         setTimeout(() => {
           if (user.role === 'admin') {
-            navigate('/admin-dashboard');
+            navigate('/products');
           } else {
             navigate('/products');
           }

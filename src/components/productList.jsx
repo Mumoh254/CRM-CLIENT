@@ -237,7 +237,7 @@ const ProductList = () => {
     const isAdmin = userRole === 'admin';
 
     return (
-        <div className="py-2 px-md-3 px-lg-5" style={{ backgroundColor: colors.background, minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
+        <div className="min" style={{ backgroundColor: colors.background, minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
             <style>
                 {`
                 /* General Styling for Modern Look */
@@ -248,6 +248,7 @@ const ProductList = () => {
                     transition: transform 0.3s ease, box-shadow 0.3s ease;
                     overflow: hidden; /* Ensure content respects border-radius */
                     background-color: ${colors.cardBg};
+                   
                 }
                 .stylish-card:hover {
                     transform: translateY(-5px); /* Lift on hover */
@@ -601,7 +602,7 @@ const ProductList = () => {
                 `}
             </style>
 
-            <div className="d-flex  flex-column flex-md-row justify-content-between align-items-md-center  gap-3">
+            <div className="d-flex py-2 flex-column flex-md-row justify-content-between align-items-md-center  gap-3">
                 <Badge
                     bg="info"
                     className="py-3 d-flex align-items-center justify-content-center flex-grow-1 flex-md-grow-0 hide-on-mobile"
@@ -630,11 +631,11 @@ const ProductList = () => {
                 </div>
             </div>
 
-            <Card className="p-2 stylish-card">
+            <Card className="px-4  stylish-card">
                 <h2 className="h4 mb-2" style={{ color: colors.darkText, fontWeight: 'bold' }}>Product Showcase ✨</h2>
 
-                <Row className="mb-4 g-3 align-items-end">
-                    <Col xs={12} md={5}>
+                <Row className="mb-5   align-items-end">
+                    <Col xs={12} md={12}>
                         <InputGroup className="input-group-stylish">
                             <InputGroup.Text><IconSearch /></InputGroup.Text>
                             <Form.Control
@@ -651,7 +652,7 @@ const ProductList = () => {
                                 {selectedCategory === 'all' ? 'All Categories' : selectedCategory}
                                 <IconChevronDown className="ms-auto" />
                             </Dropdown.Toggle>
-                            <Dropdown.Menu className="dropdown-menu-stylish">
+                            <Dropdown.Menu className="dropdown-menu-stylish  ">
                                 {categories.map(cat => (
                                     <Dropdown.Item
                                         key={cat}
@@ -700,7 +701,7 @@ const ProductList = () => {
                 ) : (
                     <>
                         {/* Desktop View: Table */}
-                        <div className="py-3 product-table-container">
+                        <div className="py-4 product-table-container">
                             <div className="table-responsive">
                                 <Table hover className="product-table">
                                     <thead>

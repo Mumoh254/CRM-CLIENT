@@ -5,10 +5,9 @@ import {
   FiLock,
   FiMail,
   FiCheckCircle,
-  FiUser,
-  FiSmartphone,
-  FiUserCheck,
-  FiLoader
+  FiUser, // Keep for general user icon if needed, but not for "Name" field anymore
+  FiLoader,
+  FiUserCheck // For role selection
 } from 'react-icons/fi';
 import axios from 'axios';
 import styled, { keyframes } from 'styled-components';
@@ -200,20 +199,14 @@ const LinkText = styled.p`
   }
 `;
 
-// --- Validation Schema (unchanged) ---
+// --- Validation Schema (Updated) ---
 const validationSchema = Yup.object().shape({
-  Name: Yup.string()
-    .required('Full Name is required')
-    .matches(/^[A-Za-z ]+$/, 'Name should only contain letters'),
-  PhoneNumber: Yup.string()
-    .matches(/^[0-9]{10}$/, 'Invalid phone number (10 digits expected)')
-    .required('Phone Number is required'),
   Email: Yup.string()
     .email('Invalid email address')
     .required('Email is required'),
-  Gender: Yup.string()
-    .required('Gender is required')
-    .oneOf(['MALE', 'FEMALE', 'OTHER'], 'Invalid gender selection'),
+  Role: Yup.string()
+    .required('Role is required')
+    .oneOf(['admin', 'user'], 'Invalid role selection'), // Added role validation
   Password: Yup.string()
     .min(8, 'Password must be at least 8 characters')
     .required('Password is required'),
@@ -222,42 +215,37 @@ const validationSchema = Yup.object().shape({
     .required('Confirm Password is required')
 });
 
-const BASE_URL = "http://127.0.0.1:5001/api"; // Corrected BASE_URL to include /api
+const BASE_URL = "http://localhost:5001/api";
 
 const Register = () => {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState('');
-  const [registrationSuccess, setRegistrationSuccess] = useState(false); // New state for success message
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
       setServerError('');
-      setRegistrationSuccess(false); // Reset success message on new submission
+      setRegistrationSuccess(false);
 
-      const response = await axios.post(`${BASE_URL}/auth/register`, { // Corrected endpoint
-        username: values.Name, // Changed to 'username' to match backend
-        // PhoneNumber and Gender are not used by the backend's register endpoint currently,
-        // but you can keep them in the form if you plan to use them later.
-        // PhoneNumber: values.PhoneNumber,
-        // Gender: values.Gender,
-        email: values.Email, // Ensure email is sent as 'email'
-        password: values.Password, // Ensure password is sent as 'password'
+      const response = await axios.post(`${BASE_URL}/auth/register`, {
+        email: values.Email,
+        role: values.Role, // Send the selected role
+        password: values.Password,
       });
 
-      if (response.status === 201 || response.status === 200) { // Check for successful status codes
+      if (response.status === 201 || response.status === 200) {
         localStorage.setItem('token', response.data.token);
-        setRegistrationSuccess(true); // Set success message
-        resetForm(); // Clear the form fields on success
+        setRegistrationSuccess(true);
+        resetForm();
         setTimeout(() => {
-          navigate('/login'); // Redirect to login after a short delay
-        }, 2000); // 2-second delay before redirecting
+          navigate('/login');
+        }, 2000);
       } else {
         setServerError(response.data?.message || 'Registration failed with an unexpected status.');
       }
     } catch (error) {
       console.error('Registration error:', error);
-      // Use error.response.data.error if available, otherwise a generic message
-      setServerError(error.response?.data?.error || 'Registration failed. Please try again.'); 
+      setServerError(error.response?.data?.error || 'Registration failed. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -268,16 +256,14 @@ const Register = () => {
       <AuthContainer>
         <Header>
           <FiUserPlus className="icon" />
-          <h1>Join Stock Link</h1> {/* Changed text */}
-          <p>Create your account to start managing your inventory efficiently.</p> {/* Changed text */}
+          <h1>Join Stock Link</h1>
+          <p>Create your account to start managing your inventory efficiently.</p>
         </Header>
 
         <Formik
           initialValues={{
-            Name: '',
-            PhoneNumber: '',
             Email: '',
-            Gender: '',
+            Role: '', // Added Role to initial values
             Password: '',
             ConfirmPassword: ''
           }}
@@ -286,20 +272,6 @@ const Register = () => {
         >
           {({ isSubmitting }) => (
             <Form>
-              {/* Full Name Field */}
-              <FormGroup>
-                <IconWrapper><FiUser /></IconWrapper>
-                <InputField name="Name" type="text" placeholder="Full Name" />
-                <ErrorMessage name="Name" component={ErrorText} />
-              </FormGroup>
-
-              {/* Phone Number Field */}
-              <FormGroup>
-                <IconWrapper><FiSmartphone /></IconWrapper>
-                <InputField name="PhoneNumber" type="tel" placeholder="Phone Number" />
-                <ErrorMessage name="PhoneNumber" component={ErrorText} />
-              </FormGroup>
-
               {/* Email Field */}
               <FormGroup>
                 <IconWrapper><FiMail /></IconWrapper>
@@ -307,16 +279,15 @@ const Register = () => {
                 <ErrorMessage name="Email" component={ErrorText} />
               </FormGroup>
 
-              {/* Gender Field */}
+              {/* Role Field */}
               <FormGroup>
                 <IconWrapper><FiUserCheck /></IconWrapper>
-                <Field name="Gender" as={SelectField}>
-                  <option value="">Select Gender</option>
-                  <option value="MALE">Male</option>
-                  <option value="FEMALE">Female</option>
-                  <option value="OTHER">Other</option>
+                <Field name="Role" as={SelectField}>
+                  <option value="">Select Role</option>
+                  <option value="admin">Admin</option>
+                  <option value="user">User</option>
                 </Field>
-                <ErrorMessage name="Gender" component={ErrorText} />
+                <ErrorMessage name="Role" component={ErrorText} />
               </FormGroup>
 
               {/* Password Field */}
@@ -347,7 +318,7 @@ const Register = () => {
                     Registering...
                   </>
                 ) : (
-                  'Create Stock Link Account' /* Changed text */
+                  'Create Stock Link Account'
                 )}
               </SubmitButton>
 

@@ -16,9 +16,9 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 const CHART_COLORS = ["#FF4532", "#00C853", "#5856d6", "#ffcc00", "#ff2d55"];
 const DEFAULT_THRESHOLD = 10;
-const API_URL = 'http://127.0.0.1:5001/api/products'; // Backend API URL
+const API_URL = 'http://localhost:5001/api/products'; // Backend API URL
 
-// Define custom styles as a string for TailwindCSS compatibility and overall aesthetics
+
 const styles = `
   :root {
     --primary-red: #FF4532;
@@ -359,29 +359,43 @@ function StockAnalytics() {
     }
   }, [products, productSettings, showToast]);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(API_URL);
-      const completeProducts = response.data.map(product => ({
-        ...product,
-        // Provide default values if API data is incomplete
-        category: product.category || 'Uncategorized',
-        salesCount: product.salesCount || 0,
-        image: product.image || `https://placehold.co/60x60/F0F0F0/ADADAD?text=${encodeURIComponent(product.name || 'Product')}`
-      }));
-      setProducts(completeProducts);
-      setLastUpdated(new Date());
-      showToast('Data fetched successfully!', 'success');
-    } catch (error) {
-      console.error('Failed to load data from API:', error);
-      showToast('Failed to load data from API. Displaying cached/empty data.', 'error');
-      // If API fails, clear products to avoid using stale or undefined data
-      setProducts([]); 
-    } finally {
-      setLoading(false);
-    }
-  }, [showToast]);
+ const fetchData = useCallback(async () => {
+  setLoading(true);
+  try {
+    const token = localStorage.getItem('accessToken');
+
+    console.log({
+      message: "Stored in analytics Tokens",
+      Token: token
+    });
+
+    const response = await axios.get(API_URL, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+          credentials: 'include'
+    });
+
+    const completeProducts = response.data.map(product => ({
+      ...product,
+      // Provide default values if API data is incomplete
+      category: product.category || 'Uncategorized',
+      salesCount: product.salesCount || 0,
+      image: product.image || `https://placehold.co/60x60/F0F0F0/ADADAD?text=${encodeURIComponent(product.name || 'Product')}`
+    }));
+
+    setProducts(completeProducts);
+    setLastUpdated(new Date());
+    showToast('Data fetched successfully!', 'success');
+  } catch (error) {
+    console.error('Failed to load data from API:', error);
+    showToast('Failed to load data from API. Displaying cached/empty data.', 'error');
+    setProducts([]);
+  } finally {
+    setLoading(false);
+  }
+}, [showToast]);
+
 
   const processChartData = useCallback((products) => {
     const categoryData = products.reduce((acc, product) => {

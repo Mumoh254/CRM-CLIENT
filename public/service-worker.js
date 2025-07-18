@@ -1,140 +1,136 @@
 const CACHE_VERSION = 'v4';
-const CACHE_NAME = `city-neuro-${CACHE_VERSION}`;
+const CACHE_NAME = `stock-link-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
 const INSTALL_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/styles.css',
+  '/styles.css', // If you have one
   '/offline.html',
-  '/images/logo.png',
-  '/images/logo.png',
+  '/images/image.png', // From manifest.json and mask-icon
+  '/images/logo2.png', // From index.html favicon
+  '/images/icon.svg',  // From index.html favicon
+  '/images/apple-touch-icon.png', // From index.html apple-touch-icon
   '/assets/index.js',
-  '/assets/index.css'
+  '/assets/index.css' // If you have one
 ];
 
-// Enhanced install event
+// INSTALL EVENT
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Force activate immediately
+  console.log('[SW] Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(INSTALL_CACHE))
       .then(() => {
-        console.log(`Cache ${CACHE_NAME} installed`);
+        console.log(`[SW] Cache ${CACHE_NAME} installed`);
         return self.skipWaiting();
       })
   );
 });
 
-// Enhanced activate event
+// ACTIVATE EVENT
 self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating...');
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
+    caches.keys().then(cacheNames =>
+      Promise.all(
         cacheNames.map(cache => {
           if (cache !== CACHE_NAME) {
-            console.log(`Deleting old cache: ${cache}`);
+            console.log(`[SW] Deleting old cache: ${cache}`);
             return caches.delete(cache);
           }
         })
-      );
-    }).then(() => {
-      console.log(`Claiming clients for ${CACHE_NAME}`);
+      )
+    ).then(() => {
+      console.log(`[SW] Claiming clients for ${CACHE_NAME}`);
       return self.clients.claim();
     }).then(() => {
-      // Force refresh all open windows
-      return self.clients.matchAll({type: 'window'}).then(clients => {
+      return self.clients.matchAll({ type: 'window' }).then(clients => {
         clients.forEach(client => {
-          client.postMessage({type: 'RELOAD_PAGE'});
+          client.postMessage({ type: 'RELOAD_PAGE' });
         });
       });
     })
   );
 });
 
-// Enhanced fetch handler with version check
+// FETCH EVENT
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Version check for API requests
+  // API version check
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request).then(response => {
         const newVersion = response.headers.get('X-New-Version');
         if (newVersion && newVersion !== CACHE_VERSION) {
-          self.registration.postMessage({
-            type: 'NEW_VERSION_AVAILABLE',
-            version: newVersion
+          self.clients.matchAll().then(clients => {
+            clients.forEach(client =>
+              client.postMessage({
+                type: 'NEW_VERSION_AVAILABLE',
+                version: newVersion
+              })
+            );
           });
         }
         return response;
+      }).catch(() => {
+        return new Response(JSON.stringify({ error: 'Offline' }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
       })
     );
     return;
   }
 
-  // Existing fetch logic...
+  // Default strategy: Network first, fallback to cache
+  event.respondWith(
+    fetch(request)
+      .then(response => {
+        return response;
+      })
+      .catch(() => {
+        return caches.match(request).then(cached => {
+          return cached || caches.match(OFFLINE_URL);
+        });
+      })
+  );
 });
 
-// Enhanced message handler
+// MESSAGE EVENT
 self.addEventListener('message', (event) => {
-  switch(event.data.type) {
+  if (!event.data) return;
+
+  switch (event.data.type) {
     case 'SKIP_WAITING':
       self.skipWaiting();
       break;
-      
+
     case 'RELOAD_CLIENTS':
       self.clients.matchAll().then(clients => {
-        clients.forEach(client => client.postMessage({type: 'FORCE_RELOAD'}));
+        clients.forEach(client => client.postMessage({ type: 'FORCE_RELOAD' }));
       });
       break;
   }
 });
 
-// Add version check interval
+// VERSION CHECK INTERVAL (only active while SW is running)
 setInterval(() => {
-  fetch('/api/version').then(response => {
-    return response.json().then(data => {
+  fetch('/api/version')
+    .then(res => res.json())
+    .then(data => {
       if (data.version !== CACHE_VERSION) {
-        self.registration.postMessage({
-          type: 'NEW_VERSION_AVAILABLE',
-          version: data.version
+        self.clients.matchAll().then(clients => {
+          clients.forEach(client =>
+            client.postMessage({
+              type: 'NEW_VERSION_AVAILABLE',
+              version: data.version
+            })
+          );
         });
       }
-    });
-  }).catch(console.error);
-}, 300000); // Check every 5 minutes
-
-// Client-side integration (add this to your main JS file)
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js').then(reg => {
-    reg.addEventListener('updatefound', () => {
-      const newWorker = reg.installing;
-      newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed') {
-          if (confirm('New version available! Refresh now?')) {
-            newWorker.postMessage({type: 'SKIP_WAITING'});
-            window.location.reload();
-          }
-        }
-      });
-    });
-
-    // Handle controller changes
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      window.location.reload();
-    });
-
-    // Listen for version messages
-    navigator.serviceWorker.addEventListener('message', event => {
-      if (event.data.type === 'NEW_VERSION_AVAILABLE') {
-        console.log(`New version ${event.data.version} available`);
-        if (confirm(`Update to version ${event.data.version}?`)) {
-          reg.update().then(() => window.location.reload());
-        }
-      }
-    });
-  });
-}
+    })
+    .catch(err => console.warn('[SW] Version check failed:', err));
+}, 300000); // Every 5 minutes

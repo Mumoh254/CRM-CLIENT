@@ -42,7 +42,8 @@ const SalesHistory = () => {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem('token');
+        const token = localStorage.getItem('accessToken');
+
 
       if (!token) {
         setError('Authentication token not found. Please log in.');
@@ -57,6 +58,7 @@ const SalesHistory = () => {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
+          credentials: 'include'
       });
 
       if (!response.ok) {
@@ -97,7 +99,7 @@ const SalesHistory = () => {
   };
 
   return (
-    <Container className="my-4 py-4">
+    <Container className=" py-4">
       <h2 className="mb-4 text-start fw-bold" style={{ color: colors.darkText }}>
         <FiBarChart className="me-2" style={{ color: colors.primary }} />Sales History
       </h2>
@@ -128,7 +130,7 @@ const SalesHistory = () => {
       {!loading && !error && sales.length > 0 && (
         <Row className="justify-content-center">
           {sales.map((sale) => (
-            <Col key={sale.id} md={8} lg={6} className="mb-4">
+            <Col key={sale.id} md={8} lg={6} className="">
               <Card className="shadow-sm sales-card h-100" style={{ backgroundColor: colors.cardBackground, borderColor: colors.borderColor }}>
                 <Card.Header className="d-flex justify-content-between align-items-center" style={{ backgroundColor: colors.lightBackground, borderBottomColor: colors.borderColor }}>
                   <h5 className="mb-0 fw-semibold" style={{ color: colors.darkText }}>
@@ -139,7 +141,7 @@ const SalesHistory = () => {
                   </Badge>
                 </Card.Header>
                 <Card.Body>
-                  <Row className="mb-3">
+                  <Row className="">
                     <Col xs={12} className="mb-2">
                       <p className="mb-1" style={{ color: colors.darkText }}>
                         <FiCalendar className="me-2" style={{ color: colors.secondary }} /> {/* Green icon */}

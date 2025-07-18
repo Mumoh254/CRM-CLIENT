@@ -1,9 +1,9 @@
 // components/UserManagement.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
 import { Container, Row, Col, Card, Button, Spinner, Alert, Table, Modal, Form, InputGroup } from 'react-bootstrap';
-import { FiUserPlus, FiUser, FiTrash2, FiEdit, FiLock, FiMail, FiUsers, FiKey } from 'react-icons/fi'; // Added FiKey for password change
+import { FiUserPlus, FiUser, FiTrash2, FiEdit, FiLock, FiMail, FiUsers, FiKey, FiRefreshCw } from 'react-icons/fi'; // Added FiRefreshCw
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const colors = {
     primary: '#FF4532', // Jikoni Red
@@ -20,27 +20,32 @@ const colors = {
     accentBlueHover: '#0056b3',
 };
 
-const UserManagement = () => { // Renamed component
-    const navigate = useNavigate(); // Initialize navigate
+
+
+
+const UserManagement = () => {
+    const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    
+
     // State for Delete Modal
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [deleteProcessing, setDeleteProcessing] = useState(false); // For delete loading state
 
     // State for Password Change Modal
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [passwordChangeProcessing, setPasswordChangeProcessing] = useState(false);
 
-
-    const fetchUsers = async () => {
+    // Fetch all users
+    const fetchUsers = useCallback(async () => {
         try {
             setLoading(true);
-            setError(null); // Clear previous errors
-            const token = localStorage.getItem('token');
+            setError(null);
+            const token = localStorage.getItem('accessToken'); // Corrected to accessToken
+
             if (!token) {
                 setError('Authentication token not found. Please log in.');
                 toast.error('Authentication required to view users.');
@@ -52,32 +57,48 @@ const UserManagement = () => { // Renamed component
                 headers: {
                     "Authorization": `Bearer ${token}`,
                 },
+                credentials: 'include'
             });
 
             if (!response.ok) {
+                if (response.status === 401 || response.status === 403) {
+                    setError('Unauthorized: You do not have permission to view users. Redirecting to login...');
+                    toast.error('Unauthorized access. Please log in.');
+                    setTimeout(() => navigate('/login'), 3000); // Redirect to login after a delay
+                    return;
+                }
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to fetch users');
+                throw new Error(errorData.message || `Failed to fetch users: ${response.status}`);
             }
 
             const data = await response.json();
-            setUsers(data);
+            // Assuming data.users is the array of users based on your provided test client response
+            setUsers(data.users || []); 
+            toast.success('Users loaded successfully!');
         } catch (err) {
             setError(err.message);
             toast.error(`Error: ${err.message}`);
+            console.error('Error fetching users:', err);
         } finally {
             setLoading(false);
         }
-    };
+    }, [navigate]); // Added navigate to dependencies
 
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [fetchUsers]);
 
+    // Handle user deletion
     const handleDelete = async () => {
         if (!selectedUser) return;
 
+        setDeleteProcessing(true);
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('accessToken'); // Corrected to accessToken
+            if (!token) {
+                throw new Error('Authentication token not found.');
+            }
+
             const response = await fetch(`http://localhost:5001/api/auth/users/${selectedUser.id}`, {
                 method: "DELETE",
                 headers: {
@@ -87,18 +108,22 @@ const UserManagement = () => { // Renamed component
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to delete user');
+                throw new Error(errorData.message || `Failed to delete user: ${response.status}`);
             }
 
-            toast.success('User deleted successfully!');
+            toast.success(`User ${selectedUser.email} deleted successfully!`);
             setShowDeleteModal(false);
             setSelectedUser(null);
             fetchUsers(); // Refresh the user list
         } catch (err) {
-            toast.error(`Error: ${err.message}`);
+            toast.error(`Error deleting user: ${err.message}`);
+            console.error('Error deleting user:', err);
+        } finally {
+            setDeleteProcessing(false);
         }
     };
 
+    // Handle password change for a user
     const handleChangePassword = async (e) => {
         e.preventDefault();
         if (!selectedUser || !newPassword) {
@@ -108,20 +133,23 @@ const UserManagement = () => { // Renamed component
 
         setPasswordChangeProcessing(true);
         try {
-            const token = localStorage.getItem('token');
-            // Assuming your backend endpoint for changing password expects userId and newPassword
-            const response = await fetch(`http://localhost:5001/api/auth/change-password`, {
+            const token = localStorage.getItem('accessToken'); // Corrected to accessToken
+            if (!token) {
+                throw new Error('Authentication token not found.');
+            }
+
+            const response = await fetch(`http://localhost:5001/api/auth/update-password/${selectedUser.id}`, { // Changed endpoint
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`,
                 },
-                body: JSON.stringify({ userId: selectedUser.id, newPassword }),
+                body: JSON.stringify({ newPassword }), // Send userId in URL param, only newPassword in body
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to change password');
+                throw new Error(errorData.message || `Failed to change password: ${response.status}`);
             }
 
             toast.success(`Password for ${selectedUser.email} changed successfully!`);
@@ -130,6 +158,7 @@ const UserManagement = () => { // Renamed component
             setNewPassword('');
         } catch (err) {
             toast.error(`Error changing password: ${err.message}`);
+            console.error('Error changing password:', err);
         } finally {
             setPasswordChangeProcessing(false);
         }
@@ -137,10 +166,10 @@ const UserManagement = () => { // Renamed component
 
     return (
         <Container className="my-4">
-            <h2 className="mb-4 text-center fw-bold" style={{ color: colors.darkText }}>
+            <h2 className="mb-4 text-start fw-bold" style={{ color: colors.darkText }}>
                 <FiUsers className="me-2" style={{ color: colors.primary }} /> User Management
             </h2>
-
+            
             <div className="d-flex justify-content-end mb-4">
                 <Button
                     variant="primary"
@@ -165,9 +194,10 @@ const UserManagement = () => { // Renamed component
 
             {error && (
                 <Alert variant="danger" className="text-center my-4">
-                    {error}
+                    <p className="mb-2 fw-bold">Error Loading Users:</p>
+                    <p className="mb-0">{error}</p>
                     <Button variant="light" className="mt-3" onClick={fetchUsers}>
-                        Retry
+                        <FiRefreshCw className="me-2" /> Retry
                     </Button>
                 </Alert>
             )}
@@ -206,14 +236,14 @@ const UserManagement = () => { // Renamed component
                                             </td>
                                             <td>
                                                 <Button
-                                                    variant="info" // Changed to info for password change
+                                                    variant="info"
                                                     size="sm"
                                                     onClick={() => {
                                                         setSelectedUser(user);
                                                         setNewPassword(''); // Clear password field
                                                         setShowPasswordModal(true);
                                                     }}
-                                                    className="me-2" // Add margin to the right
+                                                    className="me-2"
                                                     style={{ backgroundColor: colors.accentBlue, borderColor: colors.accentBlue }}
                                                 >
                                                     <FiLock /> Change Password
@@ -256,11 +286,18 @@ const UserManagement = () => { // Renamed component
                     )}
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+                    <Button variant="secondary" onClick={() => setShowDeleteModal(false)} disabled={deleteProcessing}>
                         Cancel
                     </Button>
-                    <Button variant="danger" onClick={handleDelete}>
-                        Delete User
+                    <Button variant="danger" onClick={handleDelete} disabled={deleteProcessing}>
+                        {deleteProcessing ? (
+                            <>
+                                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
+                                Deleting...
+                            </>
+                        ) : (
+                            'Delete User'
+                        )}
                     </Button>
                 </Modal.Footer>
             </Modal>
@@ -312,5 +349,6 @@ const UserManagement = () => { // Renamed component
         </Container>
     );
 };
+
 
 export default UserManagement;

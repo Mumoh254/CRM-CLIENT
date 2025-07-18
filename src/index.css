@@ -67,12 +67,12 @@ body {
 
 /* Main Content Container */
 .main-content {
-  padding: 10px; /* Generous padding */
+ 
   padding-top: 10px; /* Adjust for navbar height */
-  min-height: calc(100vh - 170px); /* Adjust for footer height */
+  height: fit-content;
   background-color: #ffffff; /* Crisp white content background */
   border-radius: 12px;
-  margin: 25px auto; /* Centered with more margin */
+  margin: 10px auto;
   max-width: 100% !important;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); /* Clean, soft shadow */
   color: #333d47; /* Consistent dark text */
@@ -84,7 +84,7 @@ body {
 .system-footer {
   background-color: #ffffff !important; /* Clean white footer */
   color: #6a737d !important; /* Muted grey text */
-  padding: 25px 0;
+  padding: 0px 0;
   font-size: 0.875rem;
   border-top: 1px solid #e0e6ed; /* Light border */
   text-align: center;
@@ -144,7 +144,7 @@ body {
 
 /* Analytics & Stock Analysis Specific Styles */
 .stock-analytics-container {
-  padding: 2rem;
+  padding: 0rem  0rem  !important;
   background-color: #f5f7fa; /* Matches body background for continuity */
   min-height: 100vh;
   color: #333d47;
@@ -224,9 +224,9 @@ body {
 .chart-container {
   height: 400px;
   position: relative;
-  background-color: #ffffff; /* White chart background */
+  background-color: #ffffff; 
   border-radius: 0.5rem;
-  padding: 1rem;
+ 
   box-shadow: 0 2px 10px rgba(0,0,0,0.05); /* Light shadow */
 }
 
@@ -827,16 +827,6 @@ textarea.form-control {
 
 
 
-.main-content {
-    flex-grow: 1;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
-}
-
 /* --- Admin Navbar (Top) Styles --- */
 .admin-navbar {
     border-bottom: 3px solid #E6392B; /* Darker red border for depth */
@@ -1030,4 +1020,59 @@ textarea.form-control {
 /* General Link and Button styles */
 a {
     text-decoration: none;
+}
+
+
+
+
+
+.simple-loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95); 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000; 
+    font-size: 1.5rem;
+    color: #2b5f7e; 
+    font-weight: 600;
+}
+
+.loading-dots::after {
+    content: ' .';
+    animation: dots 1s steps(5, end) infinite;
+}
+
+@keyframes dots {
+    0%, 20% {
+        color: rgba(0,0,0,0);
+        text-shadow:
+            .25em 0 0 rgba(0,0,0,0),
+            .5em 0 0 rgba(0,0,0,0);
+    }
+    40% {
+        color: #2b5f7e; 
+        text-shadow:
+            .25em 0 0 rgba(0,0,0,0),
+            .5em 0 0 rgba(0,0,0,0);
+    }
+    60% {
+        text-shadow:
+            .25em 0 0 #2b5f7e,
+            .5em 0 0 rgba(0,0,0,0);
+    }
+    80%, 100% {
+        text-shadow:
+            .25em 0 0 #2b5f7e,
+            .5em 0 0 #2b5f7e;
+    }
+}
+
+
+.min{
+  padding-top: 10px;
 }

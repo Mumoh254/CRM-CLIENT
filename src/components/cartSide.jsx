@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Offcanvas, Button, Form, Stack, ListGroup,
-    Modal, Spinner, InputGroup, Alert
+    Modal, Spinner, InputGroup, Alert, Col, Row
 } from "react-bootstrap";
 import {
     Mail, Plus, Minus, Trash2, ShoppingCart, CheckCircle, Phone, User, MapPin,
@@ -71,7 +71,7 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
         }
     }, [cartItems, updateCartItemsCount]);
 
-    // --- Geolocation Logic ---
+    // --- Geolocation Logic (Original Placement) ---
     const fetchGeolocation = useCallback(() => {
         if (!("geolocation" in navigator)) {
             setLocationError("Geolocation is not supported by this browser.");
@@ -105,11 +105,15 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
         );
     }, []);
 
+    // This useEffect controls when geolocation is fetched.
+    // It should ideally be tied to when the cart sidebar (or the checkout process within it) is initially shown.
+    // Reverting to only run when 'show' (the Offcanvas) becomes true.
     useEffect(() => {
-        if (show && showCheckout) {
+        if (show) { // Only fetch when the cart sidebar opens
             fetchGeolocation();
         }
-    }, [show, showCheckout, fetchGeolocation]);
+    }, [show, fetchGeolocation]); // Dependency on 'show' and 'fetchGeolocation'
+
 
     // --- Process Order Logic ---
     const handleProcessOrder = async () => {
@@ -149,21 +153,21 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
         try {
             if (paymentData.method === 'cash') {
 
-                // get    token   local s torage  
+                // get    token  local storage  
                 const token = localStorage.getItem('accessToken');
 
                 console.log({
-                    message:  "Stored   Tokens",
-                    Token:  token
+                    message: "Stored Tokens",
+                    Token: token
                 })
 
 
-                 const refreshToken = localStorage.getItem('refreshToken');
+                const refreshToken = localStorage.getItem('refreshToken');
 
-                 console.log({
-                    message:   'refresh  tokens',
-                    refresh:  refreshToken
-                 })
+                console.log({
+                    message: 'refresh tokens',
+                    refresh: refreshToken
+                })
 
                 const tendered = parseFloat(paymentData.cashAmount);
                 if (isNaN(tendered) || tendered < totalAmount) {
@@ -174,14 +178,14 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
                 const cashPayload = { ...basePayload, paymentMethod: 'cash', amountTendered: tendered };
                 console.log("Processing Cash Payment:", cashPayload);
 
- const response = await fetch('http://localhost:5001/api/sales', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}` 
-    },
-    body: JSON.stringify(cashPayload),
-  });
+                const response = await fetch('http://localhost:5001/api/sales', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(cashPayload),
+                });
 
                 if (!response.ok) {
                     const errorData = await response.json();
@@ -357,10 +361,29 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
             .checkout-modal .form-control:focus { border-color: ${colors.primary}; box-shadow: 0 0 0 3px ${colors.primary}30; }
             
             /* Custom Radio Buttons */
+            .payment-method-group .form-check {
+                flex: 1 1 auto; /* Allow items to grow and shrink */
+                margin-right: 0.5rem; /* Small gap between items */
+            }
+            .payment-method-group .form-check:last-child {
+                margin-right: 0;
+            }
+
+            @media (max-width: 767.98px) { /* For small devices, stack vertically */
+                .payment-method-group {
+                    flex-direction: column;
+                    gap: 1rem; /* Space out stacked items */
+                }
+                 .payment-method-group .form-check {
+                    margin-right: 0; /* Remove horizontal margin when stacked */
+                }
+            }
+
             .payment-method-group .form-check-input { display: none; }
             .payment-method-group .form-check-label {
                 display: flex; align-items: center; width: 100%; padding: 1rem;
                 border: 2px solid ${colors.borderColor}; border-radius: 12px; cursor: pointer; transition: all 0.2s ease;
+                min-height: 60px; /* Ensure consistent height for all payment method boxes */
             }
             .payment-method-group .form-check-label:hover { border-color: ${colors.primary}; background-color: ${colors.primary}10; }
             .payment-method-group .form-check-input:checked + .form-check-label {
@@ -396,34 +419,34 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
                                             <div className="flex-grow-1">
                                                 <h6 className="mb-1 fw-bold" style={{ color: colors.darkText }}>{item.name}</h6>
                                                 <p className="mb-2 small" style={{ color: colors.placeholderText }}>Ksh {Number(item.price).toFixed(2)}</p>
-                                           <Stack direction="horizontal" className="quantity-controls align-items-center gap-2">
-                                                 <Button
-                                                    variant="outline-secondary"
-                                                    size="sm"
-                                                    className="qty-btn"
-                                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                    disabled={item.quantity <= 1}
-                                                >
-                                                    <Minus size={14} />
-                                                </Button>
+                                                <Stack direction="horizontal" className="quantity-controls align-items-center gap-2">
+                                                    <Button
+                                                        variant="outline-secondary"
+                                                        size="sm"
+                                                        className="qty-btn"
+                                                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                        disabled={item.quantity <= 1}
+                                                    >
+                                                        <Minus size={14} />
+                                                    </Button>
 
-                                                <Form.Control
-                                                    type="number"
-                                                    className="qty-input"
-                                                    value={item.quantity}
-                                                    onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
-                                                    min="1"
-                                                />
+                                                    <Form.Control
+                                                        type="number"
+                                                        className="qty-input"
+                                                        value={item.quantity}
+                                                        onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
+                                                        min="1"
+                                                    />
 
-                                                <Button
-                                                    variant="outline-secondary"
-                                                    size="sm"
-                                                    className="qty-btn"
-                                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                >
-                                                    <Plus size={14} />
-                                                </Button>
-                                            </Stack>
+                                                    <Button
+                                                        variant="outline-secondary"
+                                                        size="sm"
+                                                        className="qty-btn"
+                                                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                    >
+                                                        <Plus size={14} />
+                                                    </Button>
+                                                </Stack>
 
                                             </div>
                                             <div className="text-end">
@@ -454,7 +477,7 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
                     <Form>
                         <h6 className="mb-2 fw-bold" style={{ color: colors.darkText }}>Delivery Location</h6>
                         <Alert variant={locationSuccess ? 'success' : 'light'} className="d-flex align-items-center">
-                            <MapPin size={20} className="me-3 flex-shrink-0" style={{color: locationSuccess ? colors.secondary : colors.primary}} />
+                            <MapPin size={20} className="me-3 flex-shrink-0" style={{ color: locationSuccess ? colors.secondary : colors.primary }} />
                             <div className="flex-grow-1">
                                 {locationLoading && <><Spinner size="sm" className="me-2" /> Fetching your location...</>}
                                 {locationError && <span className="text-danger">{locationError}</span>}
@@ -472,32 +495,36 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
                             <Form.Label>Full Name</Form.Label>
                             <InputGroup><InputGroup.Text><User size={18} /></InputGroup.Text><Form.Control type="text" placeholder="e.g., Jane Doe" value={paymentData.name} onChange={(e) => setPaymentData({ ...paymentData, name: e.target.value })} /></InputGroup>
                         </Form.Group>
-                        <Stack direction="horizontal" gap={3}>
-                            <Form.Group className="mb-3 w-100">
-                                <Form.Label>Email Address</Form.Label>
-                                <InputGroup><InputGroup.Text><Mail size={18} /></InputGroup.Text><Form.Control type="email" placeholder="email@example.com" value={paymentData.email} onChange={(e) => setPaymentData({ ...paymentData, email: e.target.value })} /></InputGroup>
-                            </Form.Group>
-                            <Form.Group className="mb-3 w-100">
-                                <Form.Label>Phone Number (e.g., 07XXXXXXXX)</Form.Label>
-                                <InputGroup><InputGroup.Text><Phone size={18} /></InputGroup.Text><Form.Control type="tel" placeholder="07XXXXXXXX" value={paymentData.phoneNumber} onChange={(e) => setPaymentData({ ...paymentData, phoneNumber: e.target.value })} /></InputGroup>
-                            </Form.Group>
-                        </Stack>
+                        <Row>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Email Address</Form.Label>
+                                    <InputGroup><InputGroup.Text><Mail size={18} /></InputGroup.Text><Form.Control type="email" placeholder="email@example.com" value={paymentData.email} onChange={(e) => setPaymentData({ ...paymentData, email: e.target.value })} /></InputGroup>
+                                </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Phone Number (e.g., 07XXXXXXXX)</Form.Label>
+                                    <InputGroup><InputGroup.Text><Phone size={18} /></InputGroup.Text><Form.Control type="tel" placeholder="07XXXXXXXX" value={paymentData.phoneNumber} onChange={(e) => setPaymentData({ ...paymentData, phoneNumber: e.target.value })} /></InputGroup>
+                                </Form.Group>
+                            </Col>
+                        </Row>
 
                         <h6 className="mt-3 mb-3 fw-bold" style={{ color: colors.darkText }}>Payment Method</h6>
-                        <Stack direction="horizontal" gap={3} className="mb-2 payment-method-group">
-                           <Form.Check type="radio" id="pay-cash" className="w-100">
-                                <Form.Check.Input type="radio" name="paymentMethod" checked={paymentData.method === 'cash'} onChange={() => setPaymentData(prev => ({...prev, method: 'cash', mpesaPhoneNumber: '', cashAmount: '', mpesaAmount: ''}))} />
-                                <Form.Check.Label><Wallet size={20} className="me-3" style={{color: colors.primary}}/><span className="fw-bold">Pay with Cash</span></Form.Check.Label>
-                           </Form.Check>
-                           <Form.Check type="radio" id="pay-mpesa" className="w-100">
-                                <Form.Check.Input type="radio" name="paymentMethod" checked={paymentData.method === 'mpesa'} onChange={() => setPaymentData(prev => ({...prev, method: 'mpesa', mpesaPhoneNumber: prev.phoneNumber, cashAmount: '', mpesaAmount: calculateTotal().toFixed(2)}))}/>
-                                <Form.Check.Label><Smartphone size={20} className="me-3" style={{color: colors.secondary}}/><span className="fw-bold">Pay with M-Pesa</span></Form.Check.Label>
-                           </Form.Check>
-                           <Form.Check type="radio" id="pay-split" className="w-100">
-                                <Form.Check.Input type="radio" name="paymentMethod" checked={paymentData.method === 'split'} onChange={() => setPaymentData(prev => ({...prev, method: 'split', mpesaPhoneNumber: prev.phoneNumber, cashAmount: '', mpesaAmount: ''}))}/>
-                                <Form.Check.Label><DivideCircle size={20} className="me-3" style={{color: colors.darkText}}/><span className="fw-bold">Split Payment</span></Form.Check.Label>
-                           </Form.Check>
-                        </Stack>
+                        <div className="d-flex flex-wrap payment-method-group"> {/* Use flex-wrap for responsiveness */}
+                            <Form.Check type="radio" id="pay-cash" className="mb-2"> {/* Added mb-2 for spacing */}
+                                <Form.Check.Input type="radio" name="paymentMethod" checked={paymentData.method === 'cash'} onChange={() => setPaymentData(prev => ({ ...prev, method: 'cash', mpesaPhoneNumber: '', cashAmount: calculateTotal().toFixed(2), mpesaAmount: '' }))} /> {/* Pre-fill cash amount */}
+                                <Form.Check.Label><Wallet size={20} className="me-3" style={{ color: colors.primary }} /><span className="fw-bold">Pay with Cash</span></Form.Check.Label>
+                            </Form.Check>
+                            <Form.Check type="radio" id="pay-mpesa" className="mb-2"> {/* Added mb-2 for spacing */}
+                                <Form.Check.Input type="radio" name="paymentMethod" checked={paymentData.method === 'mpesa'} onChange={() => setPaymentData(prev => ({ ...prev, method: 'mpesa', mpesaPhoneNumber: prev.phoneNumber, cashAmount: '', mpesaAmount: calculateTotal().toFixed(2) }))} />
+                                <Form.Check.Label><Smartphone size={20} className="me-3" style={{ color: colors.secondary }} /><span className="fw-bold">Pay with M-Pesa</span></Form.Check.Label>
+                            </Form.Check>
+                            <Form.Check type="radio" id="pay-split" className="mb-2"> {/* Added mb-2 for spacing */}
+                                <Form.Check.Input type="radio" name="paymentMethod" checked={paymentData.method === 'split'} onChange={() => setPaymentData(prev => ({ ...prev, method: 'split', mpesaPhoneNumber: prev.phoneNumber, cashAmount: '', mpesaAmount: '' }))} />
+                                <Form.Check.Label><DivideCircle size={20} className="me-3" style={{ color: colors.darkText }} /><span className="fw-bold">Split Payment</span></Form.Check.Label>
+                            </Form.Check>
+                        </div>
 
                         {paymentData.method === 'cash' && (
                             <Form.Group className="mb-3 mt-3">
@@ -534,60 +561,68 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
                         )}
 
                         {paymentData.method === 'split' && (
-                            <div className="mt-3">
+                            <div className="mt-3 mb-3"> {/* Added mb-3 here for overall spacing */}
+                                <Row className="mb-3"> {/* Use Row and Col for better layout on split inputs */}
+                                    <Col md={6}>
+                                        <Form.Group>
+                                            <Form.Label>Cash Portion</Form.Label>
+                                            <InputGroup>
+                                                <InputGroup.Text>Ksh</InputGroup.Text>
+                                                <Form.Control
+                                                    type="number"
+                                                    placeholder="Enter cash amount"
+                                                    value={paymentData.cashAmount}
+                                                    onChange={(e) => setPaymentData({ ...paymentData, cashAmount: e.target.value })}
+                                                />
+                                            </InputGroup>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group>
+                                            <Form.Label>M-Pesa Portion</Form.Label>
+                                            <InputGroup>
+                                                <InputGroup.Text>Ksh</InputGroup.Text>
+                                                <Form.Control
+                                                    type="number"
+                                                    placeholder="Enter M-Pesa amount"
+                                                    value={paymentData.mpesaAmount}
+                                                    onChange={(e) => setPaymentData({ ...paymentData, mpesaAmount: e.target.value })}
+                                                />
+                                            </InputGroup>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Cash Portion</Form.Label>
+                                    <Form.Label>M-Pesa Phone Number for Split</Form.Label>
                                     <InputGroup>
-                                        <InputGroup.Text>Ksh</InputGroup.Text>
+                                        <InputGroup.Text><Phone size={18} /></InputGroup.Text>
                                         <Form.Control
-                                            type="number"
-                                            placeholder="Enter cash amount"
-                                            value={paymentData.cashAmount}
-                                            onChange={(e) => setPaymentData({ ...paymentData, cashAmount: e.target.value })}
-                                        />
-                                    </InputGroup>
-                                </Form.Group>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>M-Pesa Portion</Form.Label>
-                                    <InputGroup>
-                                        <InputGroup.Text>Ksh</InputGroup.Text>
-                                        <Form.Control
-                                            type="number"
-                                            placeholder="Enter M-Pesa amount"
-                                            value={paymentData.mpesaAmount}
-                                            onChange={(e) => setPaymentData({ ...paymentData, mpesaAmount: e.target.value })}
+                                            type="tel"
+                                            placeholder="07XXXXXXXX"
+                                            value={paymentData.mpesaPhoneNumber}
+                                            onChange={(e) => setPaymentData({ ...paymentData, mpesaPhoneNumber: e.target.value })}
                                         />
                                     </InputGroup>
                                     <Form.Text className="text-muted">
-                                        M-Pesa phone number for STK push:
-                                        <InputGroup className="mt-2">
-                                            <InputGroup.Text><Phone size={18} /></InputGroup.Text>
-                                            <Form.Control
-                                                type="tel"
-                                                placeholder="07XXXXXXXX"
-                                                value={paymentData.mpesaPhoneNumber}
-                                                onChange={(e) => setPaymentData({ ...paymentData, mpesaPhoneNumber: e.target.value })}
-                                            />
-                                        </InputGroup>
+                                        The M-Pesa portion STK push will be sent to this number.
                                     </Form.Text>
                                 </Form.Group>
-                                <Alert variant="info" className="small">
-                                    Total Combined: Ksh {(parseFloat(paymentData.cashAmount || 0) + parseFloat(paymentData.mpesaAmount || 0)).toFixed(2)}
+                                <Alert variant="info">
+                                    Total Payable: <span className="fw-bold">Ksh {calculateTotal().toFixed(2)}</span><br />
+                                    Cash Entered: <span className="fw-bold">Ksh {Number(paymentData.cashAmount).toFixed(2) || '0.00'}</span><br />
+                                    M-Pesa Entered: <span className="fw-bold">Ksh {Number(paymentData.mpesaAmount).toFixed(2) || '0.00'}</span><br />
+                                    Remaining: <span className="fw-bold text-danger">Ksh {(calculateTotal() - (parseFloat(paymentData.cashAmount) || 0) - (parseFloat(paymentData.mpesaAmount) || 0)).toFixed(2)}</span>
                                 </Alert>
                             </div>
                         )}
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Stack className="w-100">
-                        <div className="d-flex justify-content-between mb-3">
-                            <span className="fw-bold fs-5" style={{ color: colors.darkText }}>Total Due:</span>
-                            <span className="fw-bold fs-5" style={{ color: colors.primary }}>Ksh {calculateTotal().toFixed(2)}</span>
-                        </div>
-                        <Button variant="primary" onClick={handleProcessOrder} disabled={processing || !locationSuccess} className="w-100">
-                            {processing ? (<><Spinner as="span" animation="border" size="sm" /> Processing...</>) : `Confirm & Pay`}
-                        </Button>
-                    </Stack>
+                    <Button variant="secondary" onClick={() => setShowCheckout(false)}>Back to Cart</Button>
+                    <Button variant="primary" onClick={handleProcessOrder} disabled={processing || locationLoading || cartItems.length === 0}>
+                        {processing ? <Spinner size="sm" animation="border" className="me-2" /> : <CheckCircle size={20} className="me-2" />}
+                        {processing ? 'Processing...' : `Pay Ksh ${calculateTotal().toFixed(2)}`}
+                    </Button>
                 </Modal.Footer>
             </Modal>
         </>
