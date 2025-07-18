@@ -1022,57 +1022,68 @@ a {
     text-decoration: none;
 }
 
-
-
-
+/* Styles */
 
 .simple-loader-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.95); 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000; 
-    font-size: 1.5rem;
-    color: #2b5f7e; 
-    font-weight: 600;
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  flex-direction: column;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  user-select: none;
 }
 
-.loading-dots::after {
-    content: ' .';
-    animation: dots 1s steps(5, end) infinite;
+.loader-content {
+  text-align: center;
+  color: #2c3e50;
 }
 
-@keyframes dots {
-    0%, 20% {
-        color: rgba(0,0,0,0);
-        text-shadow:
-            .25em 0 0 rgba(0,0,0,0),
-            .5em 0 0 rgba(0,0,0,0);
-    }
-    40% {
-        color: #2b5f7e; 
-        text-shadow:
-            .25em 0 0 rgba(0,0,0,0),
-            .5em 0 0 rgba(0,0,0,0);
-    }
-    60% {
-        text-shadow:
-            .25em 0 0 #2b5f7e,
-            .5em 0 0 rgba(0,0,0,0);
-    }
-    80%, 100% {
-        text-shadow:
-            .25em 0 0 #2b5f7e,
-            .5em 0 0 #2b5f7e;
-    }
+.spinner {
+  margin: 0 auto 20px auto;
+  width: 50px;
+  height: 50px;
+  border: 6px solid #28a745; /* green */
+  border-top: 6px solid #dc3545; /* red */
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
 }
 
+.loading-text, .processing-text {
+  font-weight: 700;
+  font-size: 1.4rem;
+  margin: 8px 0;
+  color: #34495e;
+}
 
-.min{
-  padding-top: 10px;
+.dots {
+  display: inline-block;
+  margin-left: 5px;
+  color: #28a745; /* green default */
+  animation: dotsBlink 1.5s infinite;
+  font-weight: 900;
+}
+
+/* Animate the dots blinking and color cycling */
+@keyframes dotsBlink {
+  0%, 100% {
+    opacity: 0.3;
+    color: #28a745; /* green */
+  }
+  33% {
+    opacity: 1;
+    color: #dc3545; /* red */
+  }
+  66% {
+    opacity: 0.6;
+    color: #f39c12; /* orange for fun */
+  }
+}
+
+/* Spinner rotation */
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

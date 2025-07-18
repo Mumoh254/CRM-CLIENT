@@ -14,7 +14,7 @@ import {
     FiClock,
     FiUserCheck,
     FiSettings,
-    FiUser, // Added for user icon in footer
+    FiUser,
 } from 'react-icons/fi';
 import ProductList from './components/productList';
 import CartSidebar from './components/cartSide';
@@ -31,7 +31,7 @@ import UserManagement from './components/usemangment';
 import Download from './components/downloader/download';
 import ProductForm from './components/productForm';
 
-import './App.css'; // Ensure your CSS is linked
+import './App.css';
 
 const colors = {
     primary: '#FF4532',
@@ -60,13 +60,14 @@ const colors = {
 
 // Loader Component
 const SimpleLoader = () => (
-  <div className="simple-loader-overlay d-flex flex-column justify-content-center align-items-center text-center">
-    <div>
-      <p className="mb-2">
-        Loading Application... <span className="loading-dots"></span>
+  <div className="simple-loader-overlay">
+    <div className="loader-content">
+      <div className="spinner"></div>
+      <p className="loading-text">
+    
       </p>
-      <p>
-        Processing Stock Data <span className="loading-dots"></span>
+      <p className="processing-text">
+        Processing Stock Data<span className="dots">...</span>
       </p>
     </div>
   </div>
@@ -150,11 +151,11 @@ const AdminNavbar = ({ handleLogout, loggedInUserEmail }) => {
                         </NavDropdown>
                     </Nav>
                     <Nav className="d-flex align-items-center">
-                         {loggedInUserEmail && (
-                            <Navbar.Text className="me-3 d-none d-lg-block" style={{ color: colors.adminNavLinkHover, fontSize: '0.9rem' }}>
-                                <FiUser className="me-1" />  <strong>{}</strong>
-                            </Navbar.Text>
-                        )}
+                             {loggedInUserEmail && (
+                                <Navbar.Text className="me-3 d-none d-lg-block" style={{ color: colors.adminNavLinkHover, fontSize: '0.9rem' }}>
+                                    <FiUser className="me-1" /> <strong></strong>
+                                </Navbar.Text>
+                            )}
                         <Button variant="outline-light" onClick={handleLogout} className="logout-button-admin"
                             style={{ borderColor: colors.adminNavLinkHover, color: colors.adminNavLinkHover, transition: 'all 0.3s ease' }}
                         >
@@ -225,24 +226,32 @@ function App() {
     const location = useLocation();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [userRole, setUserRole] = useState(null);
-    const [userEmail, setUserEmail] = useState(null); // New state for userEmail
+    const [userEmail, setUserEmail] = useState(null);
     const [showCartSidebar, setShowCartSidebar] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true); // Initialize as true to show loader on app start
 
     const checkAuthStatus = () => {
         const token = localStorage.getItem('accessToken');
         const role = localStorage.getItem('role');
-        const email = localStorage.getItem('userEmail'); // Get userEmail from localStorage
+        const email = localStorage.getItem('userEmail');
         setIsLoggedIn(!!token);
         setUserRole(role);
-        setUserEmail(email); // Set userEmail state
-        setIsLoading(false);
+        setUserEmail(email);
+        // Do NOT set isLoading to false here directly.
+        // It will be set to false after the delay in the useEffect.
     };
 
     useEffect(() => {
-        checkAuthStatus();
+        // Simulate a loading delay
+        const loaderTimer = setTimeout(() => {
+            checkAuthStatus(); // Call checkAuthStatus after the delay
+            setIsLoading(false); // Hide loader after the delay
+        }, 2000); // 2-second delay
+
         window.addEventListener('storage', checkAuthStatus);
+
         return () => {
+            clearTimeout(loaderTimer); // Clean up the timer
             window.removeEventListener('storage', checkAuthStatus);
         };
     }, []);
@@ -270,7 +279,7 @@ function App() {
             localStorage.removeItem('userEmail');
             setIsLoggedIn(false);
             setUserRole(null);
-            setUserEmail(null); // Clear user email on logout
+            setUserEmail(null);
 
             toast.info('You have been logged out.');
             navigate('/login');
@@ -286,17 +295,14 @@ function App() {
 
     const isAuthPage = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/forgot-password' || location.pathname === '/download-app';
 
-    // Determine content padding based on active navbar
     let contentPaddingTop = '0px';
     let contentPaddingBottom = '0px';
 
     if (isLoggedIn && !isAuthPage) {
         if (userRole === 'admin') {
-            // Admin navbar height is typically around 56px (Bootstrap default) or more
-            contentPaddingTop = '60px'; // Adjust this value based on your actual AdminNavbar height
+            contentPaddingTop = '60px';
         } else if (userRole === 'user') {
-            // User bottom navbar height is typically around 56px (Bootstrap default) or more
-            contentPaddingBottom = '60px'; // Adjust this value based on your actual UserBottomNavbar height
+            contentPaddingBottom = '60px';
         }
     }
 
@@ -342,25 +348,25 @@ function App() {
                                 userRole={userRole}
                                 handleLogout={handleLogout}
                                 toggleCartSidebar={toggleCartSidebar}
-                                loggedInUserEmail={userEmail} // Pass userEmail to user bottom navbar if needed there
+                                loggedInUserEmail={userEmail}
                             />
                         )}
 
                         {isLoggedIn && !isAuthPage && (
-                            <footer className="system-footer bg-light border-top d-flex flex-column" style={{ paddingBottom: userRole === 'user' ? '60px' : '0px' }}> {/* Adjust footer padding for user navbar */}
+                            <footer className="system-footer bg-light border-top d-flex flex-column" style={{ paddingBottom: userRole === 'user' ? '60px' : '0px' }}>
                                 <Container fluid className="footer-top d-flex justify-content-between align-items-center mb-1 py-2">
                                    <span className="small footer-status d-flex align-items-center">
-  <FiUser className="me-1" style={{ color: 'red' }} />
-  Logged in as:
-  <span className="text-success fw-bold ms-1 me-2">
-    {userEmail || (userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : 'Guest')}
-  </span>
-  |
-  <span className="ms-2">
-    System Status:
-    <span className="text-success fw-bold ms-1">Operational</span>
-  </span>
-</span>
+                                        <FiUser className="me-1" style={{ color: 'red' }} />
+                                        Logged in as:
+                                        <span className="text-success fw-bold ms-1 me-2">
+                                            {userEmail || (userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : 'Guest')}
+                                        </span>
+                                        |
+                                        <span className="ms-2">
+                                            System Status:
+                                            <span className="text-success fw-bold ms-1">Operational</span>
+                                        </span>
+                                    </span>
 
                                     <span className="small footer-version">
                                         <span className="text-primary fw-bold">Stock-Link</span> | SYS-VERSION - 1.1.01

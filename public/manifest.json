@@ -5,9 +5,9 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#1e1e2f", 
-  "theme_color": "#0f62fe", 
-  "description": "Real-time stock tracking and financial news platform",
+  "background_color": "#0f62fe",
+  "theme_color": "#0f62fe",
+  "description": "Real-time stock tracking and financial news platform.",
   "icons": [
     {
       "src": "/images/image.png",
@@ -33,13 +33,13 @@
   ],
   "shortcuts": [
     {
-      "name": "Watchlist",
+      "name": "📈 Watchlist",
       "short_name": "Watchlist",
       "description": "Quick access to your stock watchlist",
       "url": "/watchlist"
     },
     {
-      "name": "Market News",
+      "name": "📰 Market News",
       "short_name": "News",
       "description": "View latest stock and finance news",
       "url": "/news"
