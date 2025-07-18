@@ -6,7 +6,8 @@ import {
 import { useCart } from '../context/cartContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import ProductForm from './productForm';
+import ProductForm from './ProductForm';
+
 import { useNavigate } from 'react-router-dom';
 
 // Color palette - Adjusted for a more vibrant, modern feel
