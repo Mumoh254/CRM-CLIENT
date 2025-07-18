@@ -29,7 +29,7 @@ import SalesHistory from './components/salesHistory';
 import UserSessionMonitor from './components/sessionMonitor';
 import UserManagement from './components/usemangment';
 import Download from './components/downloader/download';
-
+import ProductForm from './components/ProductForm';
 import './App.css'; // Ensure your CSS is linked
 
 const colors = {
