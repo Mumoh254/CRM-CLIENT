@@ -3,9 +3,49 @@ import { Form, Button, Alert, Card, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
 import { FaUpload, FaSpinner } from 'react-icons/fa';
 
+// Define styles outside the component so they are injected once
+const styles = `
+  .gradient-text {
+    background: linear-gradient(45deg, #4B79CF, #4BCFBF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .image-upload-wrapper {
+    border: 2px dashed #dee2e6;
+    transition: border-color 0.3s ease;
+    background: #f8f9fa;
+  }
+
+  .image-upload-wrapper:hover {
+    border-color: #4B79CF;
+    cursor: pointer;
+  }
+
+  .upload-preview {
+    max-height: 300px;
+    object-fit: contain;
+  }
+
+  .spin {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
+
+// Inject styles once when the script is loaded
+const styleSheet = document.createElement('style');
+styleSheet.innerText = styles;
+document.head.appendChild(styleSheet);
+
+
 function ProductForm() {
   const [name, setName] = useState('');
-  const [category, setCategory] = useState(''); // New category state
+  const [category, setCategory] = useState('');
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('');
   const [imageFile, setImageFile] = useState(null);
@@ -42,7 +82,7 @@ function ProductForm() {
 
     const formData = new FormData();
     formData.append('name', name);
-    formData.append('category', category); // Append category
+    formData.append('category', category);
     formData.append('price', price);
     formData.append('stock', stock);
     if (imageFile) formData.append('image', imageFile);
@@ -52,22 +92,21 @@ function ProductForm() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      setMessage({ 
-        text: `Product created! Image Path: ${res.data.imagePath}`, 
-        type: 'success' 
+      setMessage({
+        text: `Product created! Image Path: ${res.data.imagePath}`,
+        type: 'success'
       });
-      
-      // Reset form
+
       setName('');
-      setCategory(''); // Reset category
+      setCategory('');
       setPrice('');
       setStock('');
       setImageFile(null);
     } catch (error) {
       console.error(error);
-      setMessage({ 
-        text: error.response?.data?.message || 'Error creating product', 
-        type: 'danger' 
+      setMessage({
+        text: error.response?.data?.message || 'Error creating product',
+        type: 'danger'
       });
     } finally {
       setIsLoading(false);
@@ -78,7 +117,7 @@ function ProductForm() {
     <Card className="shadow-lg border-0">
       <Card.Body className="p-5">
         <h2 className="text-center mb-4 gradient-text">Create New Product</h2>
-        
+
         {message.text && (
           <Alert variant={message.type} className="text-center">
             {message.text}
@@ -91,9 +130,9 @@ function ProductForm() {
               <Form.Group controlId="productImage" className="mb-4">
                 <div className="image-upload-wrapper border-2 rounded-3 p-4 text-center">
                   {preview ? (
-                    <img 
-                      src={preview} 
-                      alt="Preview" 
+                    <img
+                      src={preview}
+                      alt="Preview"
                       className="upload-preview img-fluid rounded-3"
                     />
                   ) : (
@@ -109,8 +148,8 @@ function ProductForm() {
                     className="d-none"
                     id="fileInput"
                   />
-                  <Form.Label 
-                    htmlFor="fileInput" 
+                  <Form.Label
+                    htmlFor="fileInput"
                     className="btn btn-outline-primary mt-3"
                   >
                     Choose Image
@@ -170,9 +209,9 @@ function ProductForm() {
               </Form.Group>
 
               <div className="d-grid">
-                <Button 
-                  variant="primary" 
-                  type="submit" 
+                <Button
+                  variant="primary"
+                  type="submit"
                   size="lg"
                   disabled={isLoading}
                 >
@@ -194,42 +233,3 @@ function ProductForm() {
 }
 
 export default ProductForm;
-
-// Add this CSS in your main stylesheet
-const styles = `
-  .gradient-text {
-    background: linear-gradient(45deg, #4B79CF, #4BCFBF);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .image-upload-wrapper {
-    border: 2px dashed #dee2e6;
-    transition: border-color 0.3s ease;
-    background: #f8f9fa;
-  }
-
-  .image-upload-wrapper:hover {
-    border-color: #4B79CF;
-    cursor: pointer;
-  }
-
-  .upload-preview {
-    max-height: 300px;
-    object-fit: contain;
-  }
-
-  .spin {
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-`;
-
-// Inject styles
-const styleSheet = document.createElement('style');
-styleSheet.innerText = styles;
-document.head.appendChild(styleSheet);
