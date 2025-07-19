@@ -45,43 +45,39 @@
 
   <!-- Service Worker Registration -->
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js').then(registration => {
-          console.log('[Client] Service Worker registered with scope:', registration.scope);
+  if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').then(registration => {
+      console.log('[Client] Service Worker registered');
 
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                if (confirm('New version available. Refresh now?')) {
-                  newWorker.postMessage({ type: 'SKIP_WAITING' });
-                }
-              }
-            });
-          });
-
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            console.log('[Client] Controller changed. Reloading...');
-            window.location.reload();
-          });
-
-          navigator.serviceWorker.addEventListener('message', event => {
-            if (event.data?.type === 'NEW_VERSION_AVAILABLE') {
-              console.log(`[Client] New version ${event.data.version} available`);
-              if (confirm(`Update to version ${event.data.version}?`)) {
-                registration.update().then(() => window.location.reload());
-              }
-            } else if (event.data?.type === 'FORCE_RELOAD') {
-              window.location.reload();
-            }
-          });
-
-        }).catch(err => {
-          console.error('[Client] SW registration failed:', err);
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // Instead of confirm, just show a less intrusive notification or console log
+            console.log('New version installed. Please refresh to update.');
+            // Or just skip waiting immediately if you want:
+            // newWorker.postMessage({ type: 'SKIP_WAITING' });
+          }
         });
       });
-    }
+
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('[Client] Controller changed, reloading page...');
+        window.location.reload();
+      });
+
+      navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data?.type === 'NEW_VERSION_AVAILABLE') {
+          console.log(`New version available: ${event.data.version}`);
+          // Optionally notify user, but don't force reload multiple times
+        }
+      });
+
+    }).catch(console.error);
+  });
+}
+
   </script>
 
   <!-- PWA Install Prompt Logic -->
