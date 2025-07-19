@@ -201,15 +201,15 @@ const ProductList = () => {
         }
     };
 
-    const getProductImageUrl = (imagePath) => {
-        if (imagePath) {
-            if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-                return imagePath;
-            }
-            return `https://crm-backend-mariadb.onrender.com/uploads/${imagePath}`;
-        }
-        return transparentPlaceholder;
-    };
+ const BASE_URL = 'https://crm-backend-mariadb.onrender.com'; // or load from .env for flexibility
+
+const getProductImageUrl = (imagePath) => {
+  if (!imagePath) return transparentPlaceholder;
+
+  const isAbsoluteUrl = imagePath.startsWith('http://') || imagePath.startsWith('https://');
+
+  return isAbsoluteUrl ? imagePath : `${BASE_URL}/uploads/${encodeURIComponent(imagePath)}`;
+};
 
     const handleImageError = (e) => {
         const img = e.target;
