@@ -16,7 +16,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 const CHART_COLORS = ["#FF4532", "#00C853", "#5856d6", "#ffcc00", "#ff2d55"];
 const DEFAULT_THRESHOLD = 10;
-const API_URL = 'http://localhost:5001/api/products'; // Backend API URL
+const API_URL = 'hhttps://96b79e8529ca.ngrok-free.app/api/products'; // Backend API URL
 
 
 const styles = `

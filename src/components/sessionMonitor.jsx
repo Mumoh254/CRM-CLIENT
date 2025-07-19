@@ -71,7 +71,7 @@ const UserSessionMonitor = () => {
                 return;
             }
 
-            const response = await fetch("http://localhost:5001/api/auth/user-session-info", {
+            const response = await fetch("https://96b79e8529ca.ngrok-free.app/api/auth/user-session-info", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",

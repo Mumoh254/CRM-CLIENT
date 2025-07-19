@@ -215,7 +215,7 @@ const validationSchema = Yup.object().shape({
     .required('Confirm Password is required')
 });
 
-const BASE_URL = "http://localhost:5001/api";
+const BASE_URL = "https://96b79e8529ca.ngrok-free.app/api";
 
 const Register = () => {
   const navigate = useNavigate();

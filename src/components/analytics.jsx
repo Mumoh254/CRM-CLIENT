@@ -458,7 +458,7 @@ const AnalyticsDashboard = () => {
     const fetchAnalytics = async () => {
       setLoading(true);
       try {
-        const url = `http://localhost:5001/api/sales/analytics?range=${timeRange}`;
+        const url = `https://96b79e8529ca.ngrok-free.app/api/sales/analytics?range=${timeRange}`;
         const { data } = await axios.get(url, {
           headers: {
             Authorization: `Bearer ${token}`
