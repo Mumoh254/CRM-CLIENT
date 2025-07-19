@@ -88,7 +88,7 @@ function ProductForm() {
     if (imageFile) formData.append('image', imageFile);
 
     try {
-      const res = await axios.post('https://96b79e8529ca.ngrok-free.app/api/products/create', formData, {
+      const res = await axios.post('https://crm-backend-mariadb.onrender.com/api/products/create', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
