@@ -78,7 +78,8 @@ const ProductList = () => {
             const response = await axios.get('https://96b79e8529ca.ngrok-free.app/api/products', {
                 headers: {
                     Authorization: `Bearer ${token}`
-                }
+                },
+                  credentials: 'include',
             });
             const prodList = Array.isArray(response.data) ? response.data : [];
             setProducts(prodList);
