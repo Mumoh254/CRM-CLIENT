@@ -55,49 +55,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// FETCH EVENT
-self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
 
-  // API version check
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
-      fetch(request).then(response => {
-        const newVersion = response.headers.get('X-New-Version');
-        if (newVersion && newVersion !== CACHE_VERSION) {
-          self.clients.matchAll().then(clients => {
-            clients.forEach(client =>
-              client.postMessage({
-                type: 'NEW_VERSION_AVAILABLE',
-                version: newVersion
-              })
-            );
-          });
-        }
-        return response;
-      }).catch(() => {
-        return new Response(JSON.stringify({ error: 'Offline' }), {
-          headers: { 'Content-Type': 'application/json' }
-        });
-      })
-    );
-    return;
-  }
-
-  // Default strategy: Network first, fallback to cache
-  event.respondWith(
-    fetch(request)
-      .then(response => {
-        return response;
-      })
-      .catch(() => {
-        return caches.match(request).then(cached => {
-          return cached || caches.match(OFFLINE_URL);
-        });
-      })
-  );
-});
 
 // MESSAGE EVENT
 self.addEventListener('message', (event) => {
@@ -115,22 +73,3 @@ self.addEventListener('message', (event) => {
       break;
   }
 });
-
-// VERSION CHECK INTERVAL (only active while SW is running)
-setInterval(() => {
-  fetch('/api/version')
-    .then(res => res.json())
-    .then(data => {
-      if (data.version !== CACHE_VERSION) {
-        self.clients.matchAll().then(clients => {
-          clients.forEach(client =>
-            client.postMessage({
-              type: 'NEW_VERSION_AVAILABLE',
-              version: data.version
-            })
-          );
-        });
-      }
-    })
-    .catch(err => console.warn('[SW] Version check failed:', err));
-}, 300000); // Every 5 minutes
