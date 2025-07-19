@@ -458,12 +458,12 @@ const AnalyticsDashboard = () => {
     const fetchAnalytics = async () => {
       setLoading(true);
       try {
-        const url = `https://crm-backend-mariadb.onrender.com/api/products`;
+        const url = `https://crm-backend-mariadb.onrender.com/api/sales/analytics?range=${timeRange}`;
         const { data } = await axios.get(url, {
           headers: {
             Authorization: `Bearer ${token}`
           },
-          Credentials: true
+          withCredentials: true
         });
         setAnalytics(data);
 

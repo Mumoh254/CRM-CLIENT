@@ -178,7 +178,7 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
                 const cashPayload = { ...basePayload, paymentMethod: 'cash', amountTendered: tendered };
                 console.log("Processing Cash Payment:", cashPayload);
 
-                const response = await fetch('http://localhost:5001/api/sales', {
+                const response = await fetch('https://crm-backend-mariadb.onrender.com/api/sales', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -210,11 +210,11 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
                     ...basePayload,
                     paymentMethod: 'mpesa',
                     amount: mpesaAmount, // Amount for STK push
-                    mpesaPhoneNumber: paymentData.mpesaPhoneNumber,
+                    phone: paymentData.mpesaPhoneNumber,
                 };
                 console.log("Initiating M-Pesa STK Push:", stkPushPayload);
 
-                const response = await fetch('http://localhost:5001/api/stkpush', {
+                const response = await fetch('https://crm-backend-mariadb.onrender.com/api/mpesa/stkpush', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(stkPushPayload),
@@ -247,10 +247,10 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
                         ...basePayload,
                         paymentMethod: 'mpesa-split',
                         amount: mpesaPortion,
-                        mpesaPhoneNumber: paymentData.mpesaPhoneNumber,
+                        phone: paymentData.mpesaPhoneNumber,
                     };
                     console.log("Initiating M-Pesa STK Push for split payment:", stkPushPayload);
-                    const mpesaResponse = await fetch('http://localhost:5001/api/stkpush', {
+                    const mpesaResponse = await fetch('https://crm-backend-mariadb.onrender.com/api/mpesa/stkpush', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(stkPushPayload),
@@ -271,9 +271,10 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
                         total: totalAmount // Still send total, backend handles split logic
                     };
                     console.log("Confirming Cash Portion for split payment:", cashPayload);
-                    const cashResponse = await fetch('http://localhost:5001/api/sales', {
+                    const cashResponse = await fetch('https://crm-backend-mariadb.onrender.com/api/sales', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`},
                         body: JSON.stringify(cashPayload),
                     });
                     if (!cashResponse.ok) {
@@ -549,7 +550,7 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
                                     <InputGroup.Text><Phone size={18} /></InputGroup.Text>
                                     <Form.Control
                                         type="tel"
-                                        placeholder="07XXXXXXXX"
+                                        placeholder="2547XXXXXXXX"
                                         value={paymentData.mpesaPhoneNumber}
                                         onChange={(e) => setPaymentData({ ...paymentData, mpesaPhoneNumber: e.target.value })}
                                     />
@@ -598,7 +599,7 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
                                         <InputGroup.Text><Phone size={18} /></InputGroup.Text>
                                         <Form.Control
                                             type="tel"
-                                            placeholder="07XXXXXXXX"
+                                            placeholder="2547XXXXXXXX"
                                             value={paymentData.mpesaPhoneNumber}
                                             onChange={(e) => setPaymentData({ ...paymentData, mpesaPhoneNumber: e.target.value })}
                                         />
