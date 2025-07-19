@@ -794,7 +794,7 @@ const ProductList = () => {
                                                     <Card.Title className="product-card-title">{product.name}</Card.Title>
                                                     <Card.Subtitle className="product-card-category">{product.category}</Card.Subtitle>
                                                     <Card.Text style={{ color: colors.darkText }}>
-                                                        {product.description ? product.description.substring(0, 80) + '...' : 'No description'}
+                                                        {product.price ? product.price.substring(0, 80) + '...' : 'No description'}
                                                     </Card.Text>
                                                 </div>
                                                 <div className="product-card-price-stock">
