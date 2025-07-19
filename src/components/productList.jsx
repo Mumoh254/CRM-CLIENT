@@ -75,7 +75,7 @@ const ProductList = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('accessToken');
-            const response = await axios.get('https://96b79e8529ca.ngrok-free.app/api/products', {
+            const response = await axios.get('https://crm-backend-mariadb.onrender.com/api/products', {
                 headers: {
                     Authorization: `Bearer ${token}`
                 },

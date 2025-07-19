@@ -188,7 +188,7 @@ const validationSchema = Yup.object().shape({
         .required('Password is required'),
 });
 
-const BASE_URL = "https://96b79e8529ca.ngrok-free.app/api";
+const BASE_URL = "https://crm-backend-mariadb.onrender.com/api";
 
 const Login = ({ onLoginSuccess }) => {
     const navigate = useNavigate();

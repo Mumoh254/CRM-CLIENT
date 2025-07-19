@@ -52,7 +52,7 @@ const SalesHistory = () => {
         return;
       }
 
-      const response = await fetch("https://96b79e8529ca.ngrok-free.app/api/sales/sales", {
+      const response = await fetch("https://crm-backend-mariadb.onrender.com/api/sales/sales", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
