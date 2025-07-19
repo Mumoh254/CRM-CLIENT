@@ -53,7 +53,7 @@ const UserManagement = () => {
                 return;
             }
 
-            const response = await fetch("http://localhost:5001/api/auth/allusers", {
+            const response = await fetch("https://crm-backend-mariadb.onrender.com/api/auth/allusers", {
                 headers: {
                     "Authorization": `Bearer ${token}`,
                 },
@@ -99,7 +99,7 @@ const UserManagement = () => {
                 throw new Error('Authentication token not found.');
             }
 
-            const response = await fetch(`http://localhost:5001/api/auth/delete/${selectedUser.id}`, {
+            const response = await fetch(`https://crm-backend-mariadb.onrender.com/api/auth/delete/${selectedUser.id}`, {
                 method: "DELETE",
                 headers: {
                     "Authorization": `Bearer ${token}`,
@@ -138,13 +138,13 @@ const UserManagement = () => {
             if (!token) {
                 throw new Error('Authentication token not found.');
             }
-const response = await fetch(`http://localhost:5001/api/auth/reset-password/${selectedUser.id}`, {
+const response = await fetch(`https://crm-backend-mariadb.onrender.com/api/auth/reset-password/${selectedUser.id}`, {
   method: "PUT",
   headers: {
     "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`, 
+    "Authorization": `Bearer ${token}`,
   },
-  credentials: 'include',
+  credentials: 'include', // <-- ensures cookies are sent
   body: JSON.stringify({ newPassword }),
 });
 

@@ -265,7 +265,7 @@ function App() {
         }
 
         try {
-            await fetch('http://localhost:5001/api/auth/logout', {
+            await fetch('https://crm-backend-mariadb.onrender.com/api/auth/logout', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
