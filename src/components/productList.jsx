@@ -150,7 +150,7 @@ const ProductList = () => {
             }
 
             await axios.put(
-                `http://localhost:5001/api/products/${selectedProduct.id}`,
+                `https://crm-backend-mariadb.onrender.com/api/products/${selectedProduct.id}`,
                 { price: parseFloat(editPrice), stock: parseInt(editStock) },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -181,7 +181,7 @@ const ProductList = () => {
             }
 
             await axios.delete(
-                `http://localhost:5001/api/products/${selectedProduct.id}`,
+                `https://crm-backend-mariadb.onrender.com/api/products/${selectedProduct.id}`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
@@ -206,7 +206,7 @@ const ProductList = () => {
             if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
                 return imagePath;
             }
-            return `http://localhost:5001/uploads/${imagePath}`;
+            return `https://crm-backend-mariadb.onrender.com/uploads/${imagePath}`;
         }
         return transparentPlaceholder;
     };
