@@ -88,67 +88,12 @@
     <script src="./src/main.jsx" type="module"></script>
 
     <script>
-        let newWorker; // Stores the new service worker that is waiting
-        let refreshing = false; // Flag to prevent multiple reloads
+navigator.serviceWorker.register('/service-worker.js').then(registration => {
+  console.log('[Client] Service Worker registered successfully:', registration);
+}).catch(err => {
+  console.error('[Client] SW registration failed:', err);
+});
 
-        // Function to display the update notification
-        function showUpdateNotification() {
-            const updateNotification = document.getElementById('update-notification');
-            updateNotification.style.display = 'flex'; // Show the notification
-            document.getElementById('update-refresh-btn').addEventListener('click', () => {
-                // When user clicks refresh, send message to service worker
-                if (newWorker) {
-                    newWorker.postMessage({ type: 'SKIP_WAITING' });
-                }
-            });
-        }
-
-        // Function to handle page reload after new service worker activates
-        function handleControllerChange() {
-            if (refreshing) return; // Prevent multiple reloads
-            refreshing = true;
-            console.log('[Client] New Service Worker activated, reloading page...');
-            window.location.reload();
-        }
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('[Client] Service Worker registered successfully:', registration);
-
-                        // Listen for updates found (a new service worker is installing)
-                        registration.addEventListener('updatefound', () => {
-                            newWorker = registration.installing;
-                            if (newWorker) {
-                                newWorker.addEventListener('statechange', () => {
-                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                        // A new service worker has been installed and is waiting
-                                        console.log('New content available, showing update notification.');
-                                        showUpdateNotification(); // Show the update banner
-                                    }
-                                });
-                            }
-                        });
-
-                        // Listen for controller changes (when a new SW takes over)
-                        // This happens after `skipWaiting()` is called and the new SW is activated
-                        navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
-
-                        // Optional: listen for messages from the service worker
-                        navigator.serviceWorker.addEventListener('message', event => {
-                            if (event.data && event.data.type === 'NEW_VERSION_AVAILABLE') {
-                                console.log(`[Client] Received message: New version available: ${event.data.version}`);
-                                // You could reinforce the notification here if desired
-                            }
-                        });
-
-                    })
-                    .catch(error => {
-                        console.error('[Client] Service Worker Registration Failed:', error);
-                    });
-            });
-        }
     </script>
 
     <script>
