@@ -6,14 +6,14 @@ const INSTALL_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/styles.css', // If you have one
+  '/styles.css',
   '/offline.html',
-  '/images/image.png', // From manifest.json and mask-icon
-  '/images/logo2.png', // From index.html favicon
-  '/images/icon.svg',  // From index.html favicon
-  '/images/apple-touch-icon.png', // From index.html apple-touch-icon
+  '/images/image.png',
+  '/images/logo2.png',
+  '/images/icon.svg',
+  '/images/apple-touch-icon.png',
   '/assets/index.js',
-  '/assets/index.css' // If you have one
+  '/assets/index.css'
 ];
 
 // INSTALL EVENT
@@ -45,31 +45,23 @@ self.addEventListener('activate', (event) => {
     ).then(() => {
       console.log(`[SW] Claiming clients for ${CACHE_NAME}`);
       return self.clients.claim();
-    }).then(() => {
-      return self.clients.matchAll({ type: 'window' }).then(clients => {
-        clients.forEach(client => {
-          client.postMessage({ type: 'RELOAD_PAGE' });
-        });
-      });
     })
   );
 });
 
-
+// FETCH EVENT
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    fetch(event.request)
+      .catch(() => caches.match(event.request).then(cachedResponse => cachedResponse || caches.match(OFFLINE_URL)))
+  );
+});
 
 // MESSAGE EVENT
 self.addEventListener('message', (event) => {
   if (!event.data) return;
 
-  switch (event.data.type) {
-    case 'SKIP_WAITING':
-      self.skipWaiting();
-      break;
-
-    case 'RELOAD_CLIENTS':
-      self.clients.matchAll().then(clients => {
-        clients.forEach(client => client.postMessage({ type: 'FORCE_RELOAD' }));
-      });
-      break;
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
 });
