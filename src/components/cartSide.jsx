@@ -416,7 +416,17 @@ const CartSidebar = ({ show, handleClose, updateCartItemsCount }) => {
                                 {cartItems.map((item, index) => (
                                     <ListGroup.Item key={item.id} style={{ animationDelay: `${index * 50}ms` }}>
                                         <Stack direction="horizontal" gap={3} className="align-items-center">
-                                            <img src={item.imageUrl || `https://via.placeholder.com/60`} alt={item.name} className="rounded-circle" style={{ width: '60px', height: '60px', objectFit: 'cover' }} />
+                                        <img
+  src={
+    item.imageUrl
+      ? `https://crm-backend-mariadb.onrender.com/${item.imageUrl}`
+      : 'https://via.placeholder.com/60'
+  }
+  alt={item.name}
+  className="rounded-circle"
+  style={{ width: '60px', height: '60px', objectFit: 'cover' }}
+/>
+
                                             <div className="flex-grow-1">
                                                 <h6 className="mb-1 fw-bold" style={{ color: colors.darkText }}>{item.name}</h6>
                                                 <p className="mb-2 small" style={{ color: colors.placeholderText }}>Ksh {Number(item.price).toFixed(2)}</p>

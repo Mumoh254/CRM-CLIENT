@@ -986,7 +986,7 @@ const AnalyticsDashboard = () => {
                       <img
                         src={
                           product.image
-                            ? `http://localhost:5001/uploads/${encodeURIComponent(product.image)}`
+                            ? `https://crm-backend-mariadb.onrender.com/uploads/${encodeURIComponent(product.image)}`
                             : 'https://placehold.co/400x280/F0F0F0/ADADAD?text=No+Image'
                         }
                         alt={product.name}
